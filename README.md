@@ -1,8 +1,8 @@
 # HJ SNS
-HJ's Social Network Service
+HJ's Social Network Service :couplekiss:
 
 ## What is this?
-This is the Social Network Service Application anyone can post their card with comment on. :couplekiss:
+This is the Social Network Service Application anyone can post their card with comment on. 
 
 ## Big To-do List 
 - [ ] Complete Activity Layout 
