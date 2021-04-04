@@ -5,9 +5,11 @@ HJ's Social Network Service :couplekiss:
 This is the Social Network Service Application anyone can post their card with comment on. 
 
 ## Big To-do List 
-- [ ] Complete Activity Layout 
-- [ ] Make Recycler View 
-- [ ] Make ViewPager and TabLayout 
+- [X] Complete Activity Layout 
+- [ ] Make Bottom Navigation View
+- [ ] Add SharedPreference for Profile Info
+- [ ] Introduce FireBase RealTime DB
+- [ ] Introduce FireBase Authentication
 - [ ] Take Advantage of SQLite & ROOM 
 - [ ] Introduce Retrofit for REST API 
 - [ ] Add OkHttp to Control Retrofit Easier 

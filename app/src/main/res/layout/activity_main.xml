@@ -6,24 +6,45 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/mainRecyclerView"
+    <FrameLayout
+        android:id="@+id/mainFrame"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toTopOf="@+id/mainBottomFrame"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent">
+
+    </FrameLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/mainFloatingActionButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="30dp"
-        android:layout_marginBottom="30dp"
+        android:layout_marginEnd="15dp"
+        android:layout_marginBottom="15dp"
         android:clickable="true"
         android:contentDescription="post card"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:backgroundTint="@color/colorButton"
+        app:layout_constraintBottom_toTopOf="@+id/mainBottomFrame"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@android:drawable/ic_dialog_email" />
+
+    <FrameLayout
+        android:id="@+id/mainBottomFrame"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/mainBottomBavigationView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="@color/white"
+            app:elevation="8dp"
+            app:menu="@menu/main_botton_navigation_menu" />
+    </FrameLayout>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
