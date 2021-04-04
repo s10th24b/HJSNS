@@ -4,13 +4,17 @@ HJ's Social Network Service :couplekiss:
 ## What is this?
 This is the Social Network Service Application anyone can post their card with comment on. 
 
+![](.README_images/c770f767.png)
+
+
 ## Big To-do List 
-- [X] Complete Activity Layout 
-- [X] Make Bottom Navigation View
+- [X] Complete Activity Layout (done at 21.04.04)
+- [X] Make Bottom Navigation View (done at 21.04.04)
 - [ ] Add SharedPreference for Profile Info
 - [ ] Introduce FireBase RealTime DB
-- [X] Automatically Scroll Up at Top of Items
-- [ ] Add Observer Patterns (for example, Cards Badge)
+- [X] Automatically Scroll Up at Top of Items (done at 21.04.04)
+- [ ] Add File Uploading System
+- [ ] Add Observer Patterns such as Cards Badge
 - [ ] Introduce FireBase Authentication
 - [ ] Take Advantage of SQLite & ROOM 
 - [ ] Introduce Retrofit for REST API 

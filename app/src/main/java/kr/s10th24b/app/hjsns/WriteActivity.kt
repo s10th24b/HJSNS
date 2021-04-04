@@ -63,10 +63,10 @@ class WriteActivity : AppCompatActivity() {
                         post.writerId = getMyId()
                         post.postId = newRef.key.toString()
                         newRef.setValue(post)
-                        toast("공유되었습니다.")
+//                        toast("공유되었습니다.")
                         finish()
                     } else {
-                        toast("내용을 작성해주세요!")
+                        toast("내용을 작성해주세요")
                     }
                 }, {
                     Log.d("KHJ","${it.toString()}")
