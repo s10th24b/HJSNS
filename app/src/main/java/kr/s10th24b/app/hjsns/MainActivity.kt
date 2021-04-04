@@ -38,9 +38,11 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onCancelled(error: DatabaseError) {
+                Log.d("KHJ",error.toString())
                 error.toException().printStackTrace()
             }
         })
+
         binding.mainBottomBavigationView.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.cardPage -> {
@@ -54,11 +56,13 @@ class MainActivity : AppCompatActivity() {
                     var badge = binding.mainBottomBavigationView.getOrCreateBadge(item.itemId)
 //                    badge.isVisible = true
 //                    changeFragment(profileFragment)
+                    changeFragment(profileFragment)
                     true
                 }
                 else -> false
             }
         }
+        binding.mainBottomBavigationView.selectedItemId = R.id.cardPage
     }
     fun changeFragment(fragment: Fragment) {
         supportFragmentManager

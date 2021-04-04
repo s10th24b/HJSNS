@@ -4,7 +4,8 @@ class Post {
     var postId = ""
     var writerId = ""
     var message = ""
-    var writeTime:Any = Any()
+    var writeTime: Any = Any()
     var bgUri = ""
-    var commentCount = ""
+    var commentCount = 0L
+    var likeCount = 0L
 }

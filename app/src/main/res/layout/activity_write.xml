@@ -59,6 +59,7 @@
         android:hint="글을 작성하세요"
         android:inputType="textMultiLine"
         android:padding="4dp"
+        android:textColor="@color/white"
         app:layout_constraintBottom_toBottomOf="@+id/writeImageView"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

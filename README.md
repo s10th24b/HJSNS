@@ -6,9 +6,11 @@ This is the Social Network Service Application anyone can post their card with c
 
 ## Big To-do List 
 - [X] Complete Activity Layout 
-- [ ] Make Bottom Navigation View
+- [X] Make Bottom Navigation View
 - [ ] Add SharedPreference for Profile Info
 - [ ] Introduce FireBase RealTime DB
+- [X] Automatically Scroll Up at Top of Items
+- [ ] Add Observer Patterns (for example, Cards Badge)
 - [ ] Introduce FireBase Authentication
 - [ ] Take Advantage of SQLite & ROOM 
 - [ ] Introduce Retrofit for REST API 
