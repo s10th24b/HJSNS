@@ -63,7 +63,7 @@ class CardsFragment : Fragment() {
                                         binding.cardsFragmentRecyclerView.childCount
                                     val totalItemCount = layoutManager.itemCount
 //                                    toast("firstCompVis: $firstCompVisPos, totalItemCount: $totalItemCount visibleItemCount: $visibleItemCount")
-                                    if (firstCompVisPos + visibleItemCount == totalItemCount) {// If scroll top
+                                    if (firstCompVisPos + visibleItemCount >= totalItemCount) {// If scroll top
                                         binding.cardsFragmentRecyclerView.scrollToPosition(
                                             recyclerViewAdapter.cardList.lastIndex
                                         )

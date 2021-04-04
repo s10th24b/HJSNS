@@ -25,8 +25,6 @@ This is the Social Network Service Application anyone can post their card with c
 
 ----------------
 ### Small To-do List 
-- [ ] Add Search History 
-- [ ] Add Search History Dropdown
 - [ ] Add Searching Progress Bar Using OkHttp & RxJava
 - [ ] ROOM Singleton Pattern 
 - [ ] Migrate from Synthetic to ViewBinding 
