@@ -2,7 +2,7 @@
 HJ's Social Network Service
 
 ## What is this?
-This is the Social Network Service Application anyone can post their card with comment on.
+This is the Social Network Service Application anyone can post their card with comment on. :couplekiss:
 
 ## Big To-do List 
 - [ ] Complete Activity Layout 
