@@ -14,6 +14,7 @@ import com.bumptech.glide.Glide
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ServerValue
 import com.jakewharton.rxbinding4.view.clicks
+import com.squareup.haha.perflib.Snapshot
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import kr.s10th24b.app.hjsns.databinding.ActivityWriteBinding
@@ -23,6 +24,7 @@ import java.util.concurrent.TimeUnit
 
 class WriteActivity : AppCompatActivity() {
     lateinit var binding: ActivityWriteBinding
+    var commentPostId = ""
     var mCompositeDisposable = CompositeDisposable()
     var currentBgPosition = 0
     val bgList = mutableListOf(
@@ -41,6 +43,8 @@ class WriteActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityWriteBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        val mode = intent.getStringExtra("mode")
+        commentPostId = intent.getStringExtra("postId") ?: ""
 
         val recyclerViewAdapter = CardBackgroundRecyclerViewAdapter()
         recyclerViewAdapter.cardBackgroundList = bgList
@@ -55,17 +59,42 @@ class WriteActivity : AppCompatActivity() {
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe({
                     if (binding.writeEditText.text.isNotBlank()) {
-                        val post = Post()
-                        val newRef = FirebaseDatabase.getInstance().getReference("Posts").push()
-                        post.writeTime = ServerValue.TIMESTAMP
-                        post.bgUri = bgList[currentBgPosition]
-                        post.message = binding.writeEditText.text.toString()
-                        post.writerId = getMyId()
-                        post.postId = newRef.key.toString()
-                        newRef.setValue(post)
-                        Log.d("KHJ", "Adding ${post.message}")
-//                        toast("공유되었습니다.")
-                        finish()
+                        when (mode) {
+                            "post" -> {
+                                val post = Post()
+                                val newRef =
+                                    FirebaseDatabase.getInstance().getReference("Posts").push()
+                                post.writeTime = ServerValue.TIMESTAMP
+                                post.bgUri = bgList[currentBgPosition]
+                                post.message = binding.writeEditText.text.toString()
+                                post.writerId = getMyId()
+                                post.postId = newRef.key.toString()
+                                newRef.setValue(post)
+                                Log.d("KHJ", "Adding ${post.message}")
+                                toast("카드 작성 성공")
+                                finish()
+                            }
+                            "comment" -> {
+                                val comment = Comment()
+                                val newRef =
+                                    FirebaseDatabase.getInstance().getReference("Comments/$commentPostId").push()
+                                comment.writeTime = ServerValue.TIMESTAMP
+                                comment.bgUri = bgList[currentBgPosition]
+                                comment.message = binding.writeEditText.text.toString()
+                                comment.writerId = getMyId()
+                                comment.postId = commentPostId
+                                comment.commentId = newRef.key.toString()
+                                newRef.setValue(comment)
+//                                val postRef = FirebaseDatabase.getInstance().getReference("Posts/$commentPostId")
+//                                postRef.child("commentCount").setValue(1+postRef.child("commentCount").get().toString().toInt())
+                                Log.d("KHJ", "Adding ${comment.message}")
+                                toast("댓글 작성 성공")
+                                finish()
+                            }
+                            else -> {
+                                error("error in writeShareButton")
+                            }
+                        }
                     } else {
                         toast("내용을 작성해주세요")
                     }
@@ -79,6 +108,11 @@ class WriteActivity : AppCompatActivity() {
 
     fun getMyId(): String { // Return Device ID
         return Settings.Secure.getString(this.contentResolver, Settings.Secure.ANDROID_ID)
+    }
+
+    override fun onDestroy() {
+        mCompositeDisposable.dispose()
+        super.onDestroy()
     }
 
     inner class CardBackgroundRecyclerViewAdapter :

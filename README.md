@@ -11,6 +11,8 @@ This is the Social Network Service Application anyone can post their card with c
 - [X] Complete Activity Layout (done at 21.04.04)
 - [X] Make Bottom Navigation View (done at 21.04.04)
 - [ ] Add SharedPreference for Profile Info
+- [ ] Complete Like System
+- [ ] Complete Comment System
 - [X] Introduce FireBase RealTime DB
 - [ ] Add Realtime Service notice there's new message
 - [ ] Add FCM for new message
@@ -19,18 +21,10 @@ This is the Social Network Service Application anyone can post their card with c
 - [ ] Add Observer Patterns such as Cards Badge
 - [ ] Introduce FireBase Authentication
 - [ ] Take Advantage of SQLite & ROOM 
-- [ ] Introduce Retrofit for REST API 
-- [ ] Add OkHttp to Control Retrofit Easier 
 - [ ] Make Service Asynchronous with RxJava & Other Rx's 
-- [ ] Add Infinite Scroll to Receive More Data 
 - [ ] Save UI State with LifeCycle(Preserve Data When Screen Rotates, Listener Restoration)
 
 ----------------
 ### Small To-do List 
-- [ ] Add Searching Progress Bar Using OkHttp & RxJava
-- [ ] ROOM Singleton Pattern 
-- [ ] Migrate from Synthetic to ViewBinding 
-- [ ] Add Click Effect
-- [ ] Add Activity Transition Effect
-- [ ] Make UI Better
+- [ ] Make UI Better Using Material Design
 - [ ] Add Dark/Light Mode

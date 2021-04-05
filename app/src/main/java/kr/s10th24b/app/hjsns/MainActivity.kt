@@ -4,6 +4,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
+import android.util.TimeUtils
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
@@ -12,9 +13,13 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.squareup.leakcanary.LeakCanary
+import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.internal.operators.observable.ObservableInterval
+import io.reactivex.rxjava3.subjects.PublishSubject
 import kr.s10th24b.app.hjsns.databinding.ActivityMainBinding
 import splitties.toast.toast
+import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
@@ -30,6 +35,7 @@ class MainActivity : AppCompatActivity() {
 
         binding.mainFloatingActionButton.setOnClickListener {
             val intent = Intent(this, WriteActivity::class.java)
+            intent.putExtra("mode","post")
             startActivity(intent)
         }
 
@@ -48,7 +54,8 @@ class MainActivity : AppCompatActivity() {
         binding.mainBottomBavigationView.setOnNavigationItemSelectedListener { item ->
             when (item.itemId) {
                 R.id.cardPage -> {
-                    var badge = binding.mainBottomBavigationView.getOrCreateBadge(item.itemId)
+//                    var badge = binding.mainBottomBavigationView.getOrCreateBadge(item.itemId)
+//                    badge.isVisible = false
 //                    badge.isVisible = true
 //                    badge.number = 99
                     changeFragment(cardsFragment)
@@ -56,8 +63,8 @@ class MainActivity : AppCompatActivity() {
                     true
                 }
                 R.id.profilePage -> {
-                    var badge = binding.mainBottomBavigationView.getOrCreateBadge(item.itemId)
-//                    badge.isVisible = true
+//                    var badge = binding.mainBottomBavigationView.getOrCreateBadge(item.itemId)
+//                    badge.isVisible = false
 //                    changeFragment(profileFragment)
                     changeFragment(profileFragment)
                     mCompositeDisposable.add(cardsFragment.mCompositeDisposable)
@@ -86,3 +93,4 @@ class MainActivity : AppCompatActivity() {
             .commit()
     }
 }
+
