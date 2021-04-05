@@ -12,12 +12,14 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.squareup.leakcanary.LeakCanary
+import io.reactivex.rxjava3.disposables.CompositeDisposable
 import kr.s10th24b.app.hjsns.databinding.ActivityMainBinding
 import splitties.toast.toast
 
 class MainActivity : AppCompatActivity() {
     lateinit var binding: ActivityMainBinding
 
+    private val mCompositeDisposable = CompositeDisposable()
     private val cardsFragment by lazy { CardsFragment() }
     private val profileFragment by lazy { ProfileFragment() }
     val ref = FirebaseDatabase.getInstance().getReference("test")
@@ -27,18 +29,18 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         binding.mainFloatingActionButton.setOnClickListener {
-            val intent = Intent(this,WriteActivity::class.java)
+            val intent = Intent(this, WriteActivity::class.java)
             startActivity(intent)
         }
 
-        ref.addValueEventListener(object:ValueEventListener {
+        ref.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val message = snapshot.value.toString()
-                Log.d("KHJ",message)
+                Log.d("KHJ", message)
             }
 
             override fun onCancelled(error: DatabaseError) {
-                Log.d("KHJ",error.toString())
+                Log.d("KHJ", error.toString())
                 error.toException().printStackTrace()
             }
         })
@@ -50,6 +52,7 @@ class MainActivity : AppCompatActivity() {
 //                    badge.isVisible = true
 //                    badge.number = 99
                     changeFragment(cardsFragment)
+                    mCompositeDisposable.add(cardsFragment.mCompositeDisposable)
                     true
                 }
                 R.id.profilePage -> {
@@ -57,6 +60,7 @@ class MainActivity : AppCompatActivity() {
 //                    badge.isVisible = true
 //                    changeFragment(profileFragment)
                     changeFragment(profileFragment)
+                    mCompositeDisposable.add(cardsFragment.mCompositeDisposable)
                     true
                 }
                 else -> false
@@ -64,6 +68,17 @@ class MainActivity : AppCompatActivity() {
         }
         binding.mainBottomBavigationView.selectedItemId = R.id.cardPage
     }
+
+    override fun onDestroy() {
+        if (isFinishing) {
+            mCompositeDisposable.dispose()
+            Log.d("KHJ", "mCompositeDisposable disposed!")
+        } else {
+
+        }
+        super.onDestroy()
+    }
+
     fun changeFragment(fragment: Fragment) {
         supportFragmentManager
             .beginTransaction()

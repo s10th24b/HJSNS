@@ -21,7 +21,7 @@ This is the Social Network Service Application anyone can post their card with c
 - [ ] Add OkHttp to Control Retrofit Easier 
 - [ ] Make Service Asynchronous with RxJava & Other Rx's 
 - [ ] Add Infinite Scroll to Receive More Data 
-- [ ] Preserve Data When Screen Rotates
+- [ ] Save UI State with LifeCycle(Preserve Data When Screen Rotates, Listener Restoration)
 
 ----------------
 ### Small To-do List 

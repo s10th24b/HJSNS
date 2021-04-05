@@ -1,6 +1,8 @@
 package kr.s10th24b.app.hjsns
 
-class Post {
+import java.io.Serializable
+
+class Post: Serializable {
     var postId = ""
     var writerId = ""
     var message = ""

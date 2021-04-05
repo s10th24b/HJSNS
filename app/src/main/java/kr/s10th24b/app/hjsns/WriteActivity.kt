@@ -63,34 +63,18 @@ class WriteActivity : AppCompatActivity() {
                         post.writerId = getMyId()
                         post.postId = newRef.key.toString()
                         newRef.setValue(post)
+                        Log.d("KHJ", "Adding ${post.message}")
 //                        toast("공유되었습니다.")
                         finish()
                     } else {
                         toast("내용을 작성해주세요")
                     }
                 }, {
-                    Log.d("KHJ","${it.toString()}")
+                    Log.d("KHJ", "${it.toString()}")
                     it.printStackTrace()
 
                 })
         )
-//        binding.writeShareButton.setOnClickListener {
-//            if (binding.writeEditText.text.isNotBlank()) {
-//                val post = Post()
-//                val newRef = FirebaseDatabase.getInstance().getReference("Posts").push()
-//                post.writeTime = ServerValue.TIMESTAMP
-//                post.bgUri = bgList[currentBgPosition]
-//                post.message = binding.writeEditText.text.toString()
-//                post.writerId = getMyId()
-//                post.postId = newRef.key.toString()
-//                newRef.setValue(post)
-//                toast("공유되었습니다.")
-//                finish()
-//            } else {
-//                toast("내용을 작성해주세요!")
-//                return@setOnClickListener
-//            }
-//        }
     }
 
     fun getMyId(): String { // Return Device ID

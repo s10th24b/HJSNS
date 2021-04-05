@@ -1,11 +1,14 @@
 package kr.s10th24b.app.hjsns
 
+import android.content.Context
+import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -14,23 +17,59 @@ import com.google.firebase.database.ChildEventListener
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.disposables.CompositeDisposable
+import io.reactivex.rxjava3.subjects.PublishSubject
 import kr.s10th24b.app.hjsns.databinding.CardPostRecyclerBinding
 import kr.s10th24b.app.hjsns.databinding.FragmentCardsBinding
 import splitties.systemservices.layoutInflater
 import splitties.toast.toast
+import java.io.Serializable
 import java.text.SimpleDateFormat
 
 class CardsFragment : Fragment() {
     lateinit var binding: FragmentCardsBinding
     lateinit var recyclerViewAdapter: CardRecyclerViewAdapter
     lateinit var layoutManager: LinearLayoutManager
+    var clickCardSubject = PublishSubject.create<Post>()
+    val mCompositeDisposable = CompositeDisposable()
+
+    //    lateinit var mState: Bundle
+    var alreadyCreated = false
+
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        toast("onCreate")
+        if (savedInstanceState == null) {
+            Log.d("KHJ", "savedInstanceState is null!")
+        } else {
+            Log.d("KHJ", "savedInstanceState is not null!")
+        }
         binding = FragmentCardsBinding.inflate(layoutInflater)
         arguments?.let {
         }
-        recyclerViewAdapter = CardRecyclerViewAdapter()
 
+        if (!alreadyCreated) {
+            setFirebaseDatabaseListener()
+        }
+        setClickCardSubject()
+    }
+
+    private fun setClickCardSubject() {
+        toast("setClickCardSubject!")
+        mCompositeDisposable.add(clickCardSubject
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe {
+                val intent = Intent(context, DetailActivity::class.java)
+                intent.putExtra("post", it)
+                startActivity(intent)
+            }
+        )
+    }
+
+    private fun setFirebaseDatabaseListener() {
+        recyclerViewAdapter = CardRecyclerViewAdapter()
         // FireBase Data pulling and save it to posts variable
         FirebaseDatabase.getInstance().getReference("/Posts")
             .orderByChild("writeTime").addChildEventListener(object : ChildEventListener {
@@ -74,8 +113,8 @@ class CardsFragment : Fragment() {
                             }
                         }
                     }
-                    for (card in recyclerViewAdapter.cardList) {
-                        Log.d("KHJ", "${card.message}")
+                    for ((idx, card) in recyclerViewAdapter.cardList.withIndex()) {
+                        Log.d("KHJ", "$idx: ${card.message}")
                     }
                 }
 
@@ -151,22 +190,6 @@ class CardsFragment : Fragment() {
                     error(error.toString())
                 }
             })
-
-    }
-
-    override fun onStart() {
-//        toast("onStart!")
-        super.onStart()
-    }
-
-    override fun onDestroy() {
-//        toast("onDestroy!")
-        super.onDestroy()
-    }
-
-    override fun onResume() {
-//        toast("onResume!")
-        super.onResume()
     }
 
     override fun onCreateView(
@@ -182,7 +205,56 @@ class CardsFragment : Fragment() {
         return binding.root
     }
 
-    inner class CardRecyclerViewAdapter : RecyclerView.Adapter<CardRecyclerViewHolder>() {
+    private fun saveInstanceState() {
+        alreadyCreated = true
+    }
+
+    override fun onAttach(context: Context) {
+        toast("onAttach()")
+        super.onAttach(context)
+    }
+
+    override fun onStart() {
+        toast("onStart!")
+        super.onStart()
+    }
+
+    override fun onResume() {
+//        toast("onResume!")
+        // Refresh View Data
+        super.onResume()
+    }
+
+    override fun onPause() {
+        toast("onPause()!")
+        super.onPause()
+    }
+
+    override fun onStop() {
+        toast("onStop()!")
+        saveInstanceState()
+        super.onStop()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        toast("onSaveInstanceState()")
+        Log.d("KHJ", "onSaveInstanceState()!")
+        super.onSaveInstanceState(outState)
+    }
+
+    override fun onDestroyView() {
+        toast("onDestroyView!")
+        super.onDestroyView()
+    }
+
+    override fun onDestroy() {
+        toast("onDestroy!")
+        mCompositeDisposable.clear()
+        super.onDestroy()
+    }
+
+    inner class CardRecyclerViewAdapter :
+        RecyclerView.Adapter<CardRecyclerViewAdapter.CardRecyclerViewHolder>() {
         val cardList = mutableListOf<Post>()
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardRecyclerViewHolder {
             return CardRecyclerViewHolder(
@@ -197,49 +269,53 @@ class CardsFragment : Fragment() {
         }
 
         override fun getItemCount() = cardList.size
-    }
 
-    inner class CardRecyclerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var binding = CardPostRecyclerBinding.bind(itemView)
-        val cardImageView = binding.cardImageView
-        val contentTextView = binding.contentTextView
-        val commentCountTextView = binding.commentCountTextView
-        val likeCountTextView = binding.likeCountTextView
-        val timeTextView = binding.timeTextView
-        fun bind(card: Post) {
-            Glide.with(itemView.context)
-                .load(Uri.parse(card.bgUri))
-                .centerCrop()
-                .into(cardImageView)
-            contentTextView.text = card.message
-            commentCountTextView.text = card.commentCount.toString()
-            likeCountTextView.text = card.likeCount.toString()
-            timeTextView.text = formatTimeString(card.writeTime as Long)
-        }
-
-        fun formatTimeString(regTime: Long): String? {
-            val SEC = 60
-            val MIN = 60
-            val HOUR = 24
-            val DAY = 30
-            val MONTH = 12
-            val curTime = System.currentTimeMillis()
-            var diffTime = (curTime - regTime) / 1000
-            var msg: String? = null
-            if (diffTime < SEC) {
-                msg = "방금 전"
-            } else if (SEC.let { diffTime /= it; diffTime } < MIN) {
-                msg = diffTime.toString() + "분 전"
-            } else if (MIN.let { diffTime /= it; diffTime } < HOUR) {
-                msg = diffTime.toString() + "시간 전"
-            } else if (HOUR.let { diffTime /= it; diffTime } < DAY) {
-                msg = diffTime.toString() + "일 전"
-            } else {
-                val sdf = SimpleDateFormat("yyyy년 MM월 dd일 HH:mm")
-                msg = sdf.format(regTime)
+        inner class CardRecyclerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+            var binding = CardPostRecyclerBinding.bind(itemView)
+            val cardImageView = binding.cardImageView
+            val contentTextView = binding.contentTextView
+            val commentCountTextView = binding.commentCountTextView
+            val likeCountTextView = binding.likeCountTextView
+            val timeTextView = binding.timeTextView
+            fun bind(card: Post) {
+                Glide.with(itemView.context)
+                    .load(Uri.parse(card.bgUri))
+                    .centerCrop()
+                    .into(cardImageView)
+                contentTextView.text = card.message
+                commentCountTextView.text = card.commentCount.toString()
+                likeCountTextView.text = card.likeCount.toString()
+                timeTextView.text = formatTimeString(card.writeTime as Long)
+                binding.root.setOnClickListener {
+                    Toast.makeText(this@CardsFragment.context,"setOnClickListener",Toast.LENGTH_SHORT).show()
+                    clickCardSubject.onNext(card)
+                }
             }
-            return msg
-        }
 
+            fun formatTimeString(regTime: Long): String? {
+                val SEC = 60
+                val MIN = 60
+                val HOUR = 24
+                val DAY = 30
+                val MONTH = 12
+                val curTime = System.currentTimeMillis()
+                var diffTime = (curTime - regTime) / 1000
+                var msg: String? = null
+                if (diffTime < SEC) {
+                    msg = "방금 전"
+                } else if (SEC.let { diffTime /= it; diffTime } < MIN) {
+                    msg = diffTime.toString() + "분 전"
+                } else if (MIN.let { diffTime /= it; diffTime } < HOUR) {
+                    msg = diffTime.toString() + "시간 전"
+                } else if (HOUR.let { diffTime /= it; diffTime } < DAY) {
+                    msg = diffTime.toString() + "일 전"
+                } else {
+                    val sdf = SimpleDateFormat("yyyy년 MM월 dd일 HH:mm")
+                    msg = sdf.format(regTime)
+                }
+                return msg
+            }
+        }
     }
+
 }
