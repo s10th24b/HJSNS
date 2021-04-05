@@ -16,6 +16,7 @@ This is the Social Network Service Application anyone can post their card with c
 - [X] Introduce FireBase RealTime DB
 - [ ] Add Realtime Service notice there's new message
 - [ ] Add FCM for new message
+- [ ] Set Comment and Like System along with Post
 - [X] Automatically Scroll Up at Top of Items (done at 21.04.04)
 - [ ] Add File Uploading System
 - [ ] Add Observer Patterns such as Cards Badge

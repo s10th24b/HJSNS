@@ -16,14 +16,12 @@ import com.bumptech.glide.Glide
 import com.google.firebase.database.*
 import kr.s10th24b.app.hjsns.databinding.ActivityDetailBinding
 import kr.s10th24b.app.hjsns.databinding.CardCommentBinding
-import kr.s10th24b.app.hjsns.databinding.CardPostRecyclerBinding
-import splitties.toast.toast
 import java.text.SimpleDateFormat
 import java.util.*
 
 class DetailActivity : AppCompatActivity() {
     lateinit var binding: ActivityDetailBinding
-    var layoutManager = LinearLayoutManager(this)
+    var layoutManager = LinearLayoutManager(this).apply { orientation = LinearLayoutManager.HORIZONTAL }
     var recyclerViewAdapter = DetailRecyclerViewAdapter()
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
