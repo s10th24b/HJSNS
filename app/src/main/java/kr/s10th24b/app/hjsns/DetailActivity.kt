@@ -26,7 +26,8 @@ class DetailActivity : AppCompatActivity() {
     var recyclerViewAdapter = DetailRecyclerViewAdapter()
     var alreadyCreated = false
     private var intentPostId = ""
-    lateinit var valueEventListener: ValueEventListener
+    lateinit var postValueEventListener: ValueEventListener
+    lateinit var commentChildEventListener: ChildEventListener
     override fun onCreate(savedInstanceState: Bundle?) {
         toast("onCreate")
         super.onCreate(savedInstanceState)
@@ -63,7 +64,7 @@ class DetailActivity : AppCompatActivity() {
 
     fun setFirebaseDatabasePostListener(postId: String) {
         Log.d("KHJ", "setFirebaseDatabasePostListener")
-        valueEventListener = FirebaseDatabase.getInstance().getReference("/Posts/$postId")
+        postValueEventListener = FirebaseDatabase.getInstance().getReference("/Posts/$postId")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val post = snapshot.getValue(Post::class.java)
@@ -82,12 +83,14 @@ class DetailActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        FirebaseDatabase.getInstance().getReference("/Posts/$intentPostId") .removeEventListener(valueEventListener)
+        FirebaseDatabase.getInstance().getReference("/Posts/$intentPostId") .removeEventListener(postValueEventListener)
+        FirebaseDatabase.getInstance().getReference("/Comments/$intentPostId") .removeEventListener(commentChildEventListener)
+//        FirebaseDatabase.getInstance().getReference("/Comments/$") .removeEventListener(valueEventListener)
         super.onDestroy()
     }
 
     fun setFirebaseDatabaseCommentListener(postId: String) {
-        FirebaseDatabase.getInstance().getReference("/Comments/$postId")
+        commentChildEventListener = FirebaseDatabase.getInstance().getReference("/Comments/$postId")
             .addChildEventListener(object : ChildEventListener {
                 override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
                     val comment = snapshot.getValue(Comment::class.java)
@@ -138,16 +141,7 @@ class DetailActivity : AppCompatActivity() {
                         val existIndex =
                             recyclerViewAdapter.commentList.indexOfFirst { cmm.commentId == it.commentId }
                         recyclerViewAdapter.commentList.removeAt(existIndex)
-                        val postCommentCountRef =
-                            FirebaseDatabase.getInstance().getReference("Posts/$postId")
-                                .child("commentCount")
                         recyclerViewAdapter.notifyItemRemoved(existIndex)
-
-                        //// You should write below code in removing function, not viewing activity
-                        postCommentCountRef.get().addOnSuccessListener(this@DetailActivity) {
-                            postCommentCountRef.setValue(it.value.toString().toInt() - 1)
-                        }.addOnCanceledListener(this@DetailActivity) { Log.d("KHJ", "Error getting data from $postId") }
-                        ///
                     }
                 }
 
@@ -173,6 +167,21 @@ class DetailActivity : AppCompatActivity() {
                 }
             })
 
+    }
+
+    fun removeComment() {
+        // 내가 배운 것.
+        // FirebaseDatabase CRUD Operation 안에는, 또다른 CRUD Operation이 있으면 안된다.
+        // multiple clients 가 존재할 때, duplicated 되기 때문.
+        val postId = ""
+        //// You should write below code in removing function, not viewing activity
+        val postCommentCountRef =
+            FirebaseDatabase.getInstance().getReference("Posts/$postId")
+                .child("commentCount")
+        postCommentCountRef.get().addOnSuccessListener(this@DetailActivity) {
+            postCommentCountRef.setValue(it.value.toString().toInt() - 1)
+        }.addOnCanceledListener(this@DetailActivity) { Log.d("KHJ", "Error getting data from $postId") }
+        ///
     }
 
     inner class DetailRecyclerViewAdapter :

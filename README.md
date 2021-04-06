@@ -11,12 +11,13 @@ This is the Social Network Service Application anyone can post their card with c
 - [X] Complete Activity Layout (done at 21.04.04)
 - [X] Make Bottom Navigation View (done at 21.04.04)
 - [ ] Add SharedPreference for Profile Info
-- [ ] Complete Comment System
+- [X] Complete Comment System (done at 21.04.06)
 - [ ] Complete Like System
+- [ ] Add LongClickListener to Implement Remove Function
 - [X] Introduce FireBase RealTime DB (done at 21.04.05)
 - [ ] Add Realtime Service notice there's new message
 - [ ] Add FCM for new message
-- [ ] Set Comment and Like System along with Post
+- [ ] Set Comment and Like System along with Post (when post removed, comment and like should be removed too.)
 - [X] Automatically Scroll Up at Top of Items (done at 21.04.04)
 - [ ] Add File Uploading System
 - [ ] Add Observer Patterns such as Cards Badge

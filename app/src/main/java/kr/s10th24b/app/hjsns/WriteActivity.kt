@@ -88,6 +88,9 @@ class WriteActivity : AppCompatActivity() {
                                 comment.postId = commentPostId
                                 comment.commentId = newRef.key.toString()
                                 newRef.setValue(comment)
+                                Log.d("KHJ", "Adding Comment ${comment.message}")
+                                //// You should write below code in writing part, not viewing activity
+                                // here, right.
                                 val postCommentCountRef =
                                     FirebaseDatabase.getInstance()
                                         .getReference("Posts/$commentPostId")
@@ -97,9 +100,6 @@ class WriteActivity : AppCompatActivity() {
                                 }.addOnCanceledListener(this) {
                                     Log.d("KHJ", "Error getting data from $commentPostId")
                                 }
-//                                val postRef = FirebaseDatabase.getInstance().getReference("Posts/$commentPostId")
-//                                postRef.child("commentCount").setValue(1+postRef.child("commentCount").get().toString().toInt())
-                                Log.d("KHJ", "Adding Comment ${comment.message}")
 //                                toast("댓글 작성 성공")
                                 finish()
                             }
