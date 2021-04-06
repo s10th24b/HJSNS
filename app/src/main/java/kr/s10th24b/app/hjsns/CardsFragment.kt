@@ -7,28 +7,26 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
-import android.system.Os.remove
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.bumptech.glide.load.resource.drawable.DrawableResource
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.database.*
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
+import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.PublishSubject
 import kr.s10th24b.app.hjsns.databinding.CardPostRecyclerBinding
 import kr.s10th24b.app.hjsns.databinding.FragmentCardsBinding
-import splitties.systemservices.layoutInflater
 import splitties.toast.toast
-import java.io.Serializable
 import java.text.SimpleDateFormat
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 class CardsFragment : Fragment() {
     lateinit var binding: FragmentCardsBinding
@@ -196,6 +194,18 @@ class CardsFragment : Fragment() {
     // 그래서 Comment onAddChild 안에서 코멘트카운트 늘리는 거 했다가 duplicated 됐던 것이다.
     // 따로 함수 안에서, local 한 곳에서 처리할 것.
 
+    // -> 정확히 말하면, 다른 클라우드 데이터와 관련된 조작을 또다른 클라우드 데이터 CRUD Op 에서 행하면 안되는 것이다.
+    // DB 에서 직접 Post의 count를 줄이면 바로 반영된다. Post 의 CRUD에서는 Post의 클라우드 데이터만 처리하고
+    // 다른 클라우드 데이터는 다루지 않기 때문이다. 이를 내 방식대로 "독립적"이라고 정의하겠다.
+    // 하지만, 만약 Post가 지워질 때 관련된 코멘트와 좋아요를 없애려고 Post의 CRUD Op에 다른 클라우드 데이터인 Comment 와 Like
+    // 를 remove 하는 Op 을 넣는다면? 이렇게 되면 다른 클라우드 데이터를 다루게 되므로 "비독립적"이게 되며, 곧
+    // multi-user 환경에서는 Comment 와 Like를 한번만 지워야 할거를 N명의 사람이 있으면 N번 지우게 되는 것이다.
+
+
+    // 하지만, DB 를 직접 지우거나 할때는 적용이 안된다. Comment 를 DB에서 직접 지워버리면,  setValue 이벤트가 작동을 안하기 때문.
+    // 만약 여기서 Manager Service가 있어서 딱 단 하나만 존재하는, 서버급의 서비스가 존재해서 이 데이터 조작들을 총괄해준다면 어떨까?
+    // 이 때는 단 하나의 리스너만 존재하므로 기존에 multi user 를 고려해서 CRUD안에 CRUD 를 넣지 못했던 걸 넣을 수 있다.
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -310,12 +320,20 @@ class CardsFragment : Fragment() {
             binding.contentTextView.text = card.message
             binding.commentCountTextView.text = card.commentCount.toString()
             binding.likeCountTextView.text = card.likeCount.toString()
-            binding.timeTextView.text = formatTimeString(card.writeTime as Long)
+            // 헌데, 특정 포스트가 삭제되면, 그와 관련된 Interval Observable도 dispose 해줘야 하는데...
+            // 그건 구현을 어떻게 하지? 그 Observable reference 를 어떻게 구하지?
+            // 이렇게 있으면 또 recyclerView에서 holder가 없어져도 Observable을 갖고있어서 GC되지 않을텐데..
+            mCompositeDisposable.add(Observable.interval(60L, TimeUnit.SECONDS)
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe {
+                    binding.timeTextView.text = formatTimeString(card.writeTime as Long)
+                })
             binding.cardImageView.setOnClickListener {
                 clickCardSubject.onNext(card)
             }
             binding.likeImageView.setOnClickListener {
                 val likeRef = FirebaseDatabase.getInstance().getReference("Like/${card.postId}")
+                // a 가 Unit 이다... ValueEventListener 를 반환해야 remove가능한데...
                 likeRef.orderByChild("likerId").equalTo(getMyId())
                     .addListenerForSingleValueEvent(object : ValueEventListener {
                         override fun onDataChange(snapshot: DataSnapshot) {
@@ -331,10 +349,10 @@ class CardsFragment : Fragment() {
                                     .getReference("Posts/${card.postId}")
                                     .child("likeCount")
                                 postLikeCountRef.get()
-                                    .addOnSuccessListener(this@CardsFragment.activity as Activity) {
+                                    .addOnSuccessListener(this@CardsFragment.requireActivity()) {
                                         postLikeCountRef.setValue(it.value.toString().toInt() - 1)
                                     }
-                                    .addOnCanceledListener(this@CardsFragment.activity as Activity) {
+                                    .addOnCanceledListener(this@CardsFragment.requireActivity()) {
                                         Log.d("KHJ", "Error getting data from ${card.postId}")
                                     }
                             } else {
@@ -355,10 +373,10 @@ class CardsFragment : Fragment() {
                                     .getReference("Posts/${card.postId}")
                                     .child("likeCount")
                                 postLikeCountRef.get()
-                                    .addOnSuccessListener(this@CardsFragment.activity as Activity) {
+                                    .addOnSuccessListener(this@CardsFragment.requireActivity()) {
                                         postLikeCountRef.setValue(it.value.toString().toInt() + 1)
                                     }
-                                    .addOnCanceledListener(this@CardsFragment.activity as Activity) {
+                                    .addOnCanceledListener(this@CardsFragment.requireActivity()) {
                                         Log.d("KHJ", "Error getting data from ${card.postId}")
                                     }
                             }

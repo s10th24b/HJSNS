@@ -7,16 +7,15 @@
     <color name="colorOnSurface">#64b5f6</color>
     <color name="colorSecondary">#01579b</color>
     <color name="colorSecondaryVariant">#4f83cc</color>
-<!--        <color name="colorSecondaryVariant">@color/black</color>-->
     <color name="colorOnSecondary">@color/white</color>
-    <color name="colorOnBackground">#000000</color>
+    <color name="colorOnBackground">@color/white</color>
 
-    <color name="colorPrimaryNight">#1a237e</color>
+    <color name="colorPrimaryNight">#01579b</color>
     <color name="colorPrimaryVariantNight">#000051</color>
     <color name="colorOnPrimaryNight">@color/black</color>
     <color name="colorSurfaceNight">@color/grey_800</color>
     <color name="colorOnSurfaceNight">#64b5f6</color>
-    <color name="colorSecondaryNight">@color/black</color>
+    <color name="colorSecondaryNight">#37474f</color>
     <color name="colorSecondaryVariantNight">#4f83cc</color>
     <color name="colorOnSecondaryNight">#002f6c</color>
     <color name="colorOnBackgroundNight">#000000</color>
