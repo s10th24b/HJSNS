@@ -16,21 +16,28 @@ import com.bumptech.glide.Glide
 import com.google.firebase.database.*
 import kr.s10th24b.app.hjsns.databinding.ActivityDetailBinding
 import kr.s10th24b.app.hjsns.databinding.CardCommentBinding
+import splitties.toast.toast
 import java.text.SimpleDateFormat
 import java.util.*
 
 class DetailActivity : AppCompatActivity() {
     lateinit var binding: ActivityDetailBinding
-    var layoutManager = LinearLayoutManager(this).apply { orientation = LinearLayoutManager.HORIZONTAL }
+    lateinit var layoutManager: LinearLayoutManager
     var recyclerViewAdapter = DetailRecyclerViewAdapter()
+    var alreadyCreated = false
+    private var intentPostId = ""
+    lateinit var valueEventListener: ValueEventListener
     override fun onCreate(savedInstanceState: Bundle?) {
+        toast("onCreate")
         super.onCreate(savedInstanceState)
         binding = ActivityDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
         val intentPost = intent.getSerializableExtra("post") as Post
-        val intentPostId = intentPost.postId
+        intentPostId = intentPost.postId
 
         binding.detailRecyclerView.adapter = recyclerViewAdapter
+        layoutManager =
+            LinearLayoutManager(this).apply { orientation = LinearLayoutManager.HORIZONTAL }
         binding.detailRecyclerView.layoutManager = layoutManager
 
         setFirebaseDatabasePostListener(intentPostId)
@@ -44,21 +51,39 @@ class DetailActivity : AppCompatActivity() {
         }
     }
 
+    override fun onStop() {
+        toast("onStop")
+        super.onStop()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        alreadyCreated = true
+    }
+
     fun setFirebaseDatabasePostListener(postId: String) {
-        FirebaseDatabase.getInstance().getReference("/Posts/$postId")
+        Log.d("KHJ", "setFirebaseDatabasePostListener")
+        valueEventListener = FirebaseDatabase.getInstance().getReference("/Posts/$postId")
             .addValueEventListener(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val post = snapshot.getValue(Post::class.java)
                     post?.let {
-                        Glide.with(this@DetailActivity).load(Uri.parse(it.bgUri))
+                        Glide.with(applicationContext).load(Uri.parse(it.bgUri))
                             .into(binding.detailImageView)
                         binding.detailTextView.text = it.message
                     }
+//                    toast("onDataChange PostListener")
+                    Log.d("KHJ", "onDataChange PostListener")
                 }
 
                 override fun onCancelled(error: DatabaseError) {
                 }
             })
+    }
+
+    override fun onDestroy() {
+        FirebaseDatabase.getInstance().getReference("/Posts/$intentPostId") .removeEventListener(valueEventListener)
+        super.onDestroy()
     }
 
     fun setFirebaseDatabaseCommentListener(postId: String) {
@@ -81,7 +106,7 @@ class DetailActivity : AppCompatActivity() {
                                 layoutManager.findFirstCompletelyVisibleItemPosition()
                             val visibleItemCount = binding.detailRecyclerView.childCount
                             val totalItemCount = layoutManager.itemCount
-//                                    toast("firstCompVis: $firstCompVisPos, totalItemCount: $totalItemCount visibleItemCount: $visibleItemCount")
+//                            toast("firstCompVis: $firstCompVisPos, totalItemCount: $totalItemCount visibleItemCount: $visibleItemCount")
                             if (firstCompVisPos + visibleItemCount >= totalItemCount) {// If scroll top
                                 binding.detailRecyclerView.scrollToPosition(
                                     recyclerViewAdapter.commentList.lastIndex
@@ -113,6 +138,16 @@ class DetailActivity : AppCompatActivity() {
                         val existIndex =
                             recyclerViewAdapter.commentList.indexOfFirst { cmm.commentId == it.commentId }
                         recyclerViewAdapter.commentList.removeAt(existIndex)
+                        val postCommentCountRef =
+                            FirebaseDatabase.getInstance().getReference("Posts/$postId")
+                                .child("commentCount")
+                        recyclerViewAdapter.notifyItemRemoved(existIndex)
+
+                        //// You should write below code in removing function, not viewing activity
+                        postCommentCountRef.get().addOnSuccessListener(this@DetailActivity) {
+                            postCommentCountRef.setValue(it.value.toString().toInt() - 1)
+                        }.addOnCanceledListener(this@DetailActivity) { Log.d("KHJ", "Error getting data from $postId") }
+                        ///
                     }
                 }
 
@@ -122,6 +157,7 @@ class DetailActivity : AppCompatActivity() {
                         val existIndex =
                             recyclerViewAdapter.commentList.indexOfFirst { cmm.commentId == it.commentId }
                         recyclerViewAdapter.commentList.removeAt(existIndex)
+                        recyclerViewAdapter.notifyItemRemoved(existIndex)
 
                         val prevIndex =
                             recyclerViewAdapter.commentList.indexOfFirst { cmm.commentId == previousChildName }

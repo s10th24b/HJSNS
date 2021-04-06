@@ -25,7 +25,6 @@
         android:layout_marginBottom="15dp"
         android:clickable="true"
         android:contentDescription="post card"
-        app:backgroundTint="@color/colorButton"
         app:layout_constraintBottom_toTopOf="@+id/mainBottomFrame"
         app:layout_constraintEnd_toEndOf="parent"
         app:srcCompat="@android:drawable/ic_dialog_email" />
@@ -42,7 +41,6 @@
             android:id="@+id/mainBottomBavigationView"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:background="@color/white"
             app:elevation="8dp"
             app:menu="@menu/main_botton_navigation_menu" />
     </FrameLayout>

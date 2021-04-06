@@ -1,5 +1,6 @@
 package kr.s10th24b.app.hjsns
 
+import android.annotation.SuppressLint
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
@@ -11,6 +12,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
+import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ServerValue
 import com.jakewharton.rxbinding4.view.clicks
@@ -70,14 +72,15 @@ class WriteActivity : AppCompatActivity() {
                                 post.writerId = getMyId()
                                 post.postId = newRef.key.toString()
                                 newRef.setValue(post)
-                                Log.d("KHJ", "Adding ${post.message}")
-                                toast("카드 작성 성공")
+                                Log.d("KHJ", "Adding Post ${post.message}")
+//                                toast("카드 작성 성공")
                                 finish()
                             }
                             "comment" -> {
                                 val comment = Comment()
                                 val newRef =
-                                    FirebaseDatabase.getInstance().getReference("Comments/$commentPostId").push()
+                                    FirebaseDatabase.getInstance()
+                                        .getReference("Comments/$commentPostId").push()
                                 comment.writeTime = ServerValue.TIMESTAMP
                                 comment.bgUri = bgList[currentBgPosition]
                                 comment.message = binding.writeEditText.text.toString()
@@ -85,10 +88,19 @@ class WriteActivity : AppCompatActivity() {
                                 comment.postId = commentPostId
                                 comment.commentId = newRef.key.toString()
                                 newRef.setValue(comment)
+                                val postCommentCountRef =
+                                    FirebaseDatabase.getInstance()
+                                        .getReference("Posts/$commentPostId")
+                                        .child("commentCount")
+                                postCommentCountRef.get().addOnSuccessListener(this) {
+                                    postCommentCountRef.setValue(it.value.toString().toInt() + 1)
+                                }.addOnCanceledListener(this) {
+                                    Log.d("KHJ", "Error getting data from $commentPostId")
+                                }
 //                                val postRef = FirebaseDatabase.getInstance().getReference("Posts/$commentPostId")
 //                                postRef.child("commentCount").setValue(1+postRef.child("commentCount").get().toString().toInt())
-                                Log.d("KHJ", "Adding ${comment.message}")
-                                toast("댓글 작성 성공")
+                                Log.d("KHJ", "Adding Comment ${comment.message}")
+//                                toast("댓글 작성 성공")
                                 finish()
                             }
                             else -> {
@@ -106,6 +118,7 @@ class WriteActivity : AppCompatActivity() {
         )
     }
 
+    @SuppressLint("HardwareIds")
     fun getMyId(): String { // Return Device ID
         return Settings.Secure.getString(this.contentResolver, Settings.Secure.ANDROID_ID)
     }

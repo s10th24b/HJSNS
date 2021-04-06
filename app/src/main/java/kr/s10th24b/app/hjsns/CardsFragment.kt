@@ -1,9 +1,11 @@
 package kr.s10th24b.app.hjsns
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.provider.Settings
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -13,10 +15,7 @@ import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import com.google.firebase.database.ChildEventListener
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.*
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.PublishSubject
@@ -32,6 +31,7 @@ class CardsFragment : Fragment() {
     lateinit var recyclerViewAdapter: CardRecyclerViewAdapter
     lateinit var layoutManager: LinearLayoutManager
     var clickCardSubject = PublishSubject.create<Post>()
+    var clickLikeSubject = PublishSubject.create<Post>()
     val mCompositeDisposable = CompositeDisposable()
 
     //    lateinit var mState: Bundle
@@ -66,6 +66,27 @@ class CardsFragment : Fragment() {
                 startActivity(intent)
             }
         )
+        mCompositeDisposable.add(clickLikeSubject
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe {
+                FirebaseDatabase.getInstance().getReference("Like/${it.postId}")
+                    .addValueEventListener(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+
+                        }
+
+                        override fun onCancelled(error: DatabaseError) {
+                        }
+                    })
+                val like = Like()
+                val newRef =
+                    FirebaseDatabase.getInstance().getReference("Like/${it.postId}").push()
+                like.likeId = newRef.key.toString()
+                like.likerId = getMyId()
+                like.postId = it.postId
+                like.likeTime = ServerValue.TIMESTAMP
+            }
+        )
     }
 
     private fun setFirebaseDatabaseListener() {
@@ -74,7 +95,7 @@ class CardsFragment : Fragment() {
         FirebaseDatabase.getInstance().getReference("/Posts")
             .orderByChild("writeTime").addChildEventListener(object : ChildEventListener {
                 override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-//                    toast("onChildAdded()")
+                    toast("onChildAdded()")
                     snapshot.let { ss ->
                         val post = ss.getValue(Post::class.java)
                         post?.let { newPost ->
@@ -95,9 +116,10 @@ class CardsFragment : Fragment() {
                                 recyclerViewAdapter.notifyItemInserted(recyclerViewAdapter.cardList.lastIndex)
                                 val firstCompVisPos =
                                     layoutManager.findFirstCompletelyVisibleItemPosition()
-                                val visibleItemCount = binding.cardsFragmentRecyclerView.childCount
+//                                val visibleItemCount = binding.cardsFragmentRecyclerView.childCount
+                                val visibleItemCount = layoutManager.childCount
                                 val totalItemCount = layoutManager.itemCount
-//                                    toast("firstCompVis: $firstCompVisPos, totalItemCount: $totalItemCount visibleItemCount: $visibleItemCount")
+//                                toast("firstCompVis: $firstCompVisPos, totalItemCount: $totalItemCount visibleItemCount: $visibleItemCount")
                                 if (firstCompVisPos + visibleItemCount >= totalItemCount) {// If scroll top
                                     binding.cardsFragmentRecyclerView.scrollToPosition(
                                         recyclerViewAdapter.cardList.lastIndex
@@ -112,7 +134,7 @@ class CardsFragment : Fragment() {
                 }
 
                 override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-//                    toast("onChildChanged()")
+                    toast("onChildChanged()")
                     snapshot.let { ss ->
                         //snapshot의 데이터를 Post의 객체로
                         val post = ss.getValue(Post::class.java)
@@ -130,7 +152,7 @@ class CardsFragment : Fragment() {
                 }
 
                 override fun onChildRemoved(snapshot: DataSnapshot) {
-//                    toast("onChildRemoved()")
+                    toast("onChildRemoved()")
                     snapshot.let { ss ->
                         //snapshot의 데이터를 Post의 객체로 가져옴
                         val post = ss.getValue(Post::class.java)
@@ -148,7 +170,7 @@ class CardsFragment : Fragment() {
                 }
 
                 override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
-//                    toast("onChildMoved()")
+                    toast("onChildMoved()")
                     snapshot.let { ss ->
                         //snapshot의 데이터를 Post의 객체로
                         val post = ss.getValue(Post::class.java)
@@ -199,7 +221,6 @@ class CardsFragment : Fragment() {
     }
 
     private fun saveInstanceState() {
-        alreadyCreated = true
     }
 
     override fun onAttach(context: Context) {
@@ -216,6 +237,7 @@ class CardsFragment : Fragment() {
 //        toast("onResume!")
         // Refresh View Data
         super.onResume()
+        alreadyCreated = true
     }
 
     override fun onPause() {
@@ -266,23 +288,20 @@ class CardsFragment : Fragment() {
 
     inner class CardRecyclerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var binding = CardPostRecyclerBinding.bind(itemView)
-        val cardImageView = binding.cardImageView
-        val contentTextView = binding.contentTextView
-        val commentCountTextView = binding.commentCountTextView
-        val likeCountTextView = binding.likeCountTextView
-        val timeTextView = binding.timeTextView
         fun bind(card: Post) {
             Glide.with(itemView.context)
                 .load(Uri.parse(card.bgUri))
                 .centerCrop()
-                .into(cardImageView)
-            contentTextView.text = card.message
-            commentCountTextView.text = card.commentCount.toString()
-            likeCountTextView.text = card.likeCount.toString()
-            timeTextView.text = formatTimeString(card.writeTime as Long)
-            binding.root.setOnClickListener {
-//                    Toast.makeText(this@CardsFragment.context,"setOnClickListener",Toast.LENGTH_SHORT).show()
+                .into(binding.cardImageView)
+            binding.contentTextView.text = card.message
+            binding.commentCountTextView.text = card.commentCount.toString()
+            binding.likeCountTextView.text = card.likeCount.toString()
+            binding.timeTextView.text = formatTimeString(card.writeTime as Long)
+            binding.cardImageView.setOnClickListener {
                 clickCardSubject.onNext(card)
+            }
+            binding.likeImageView.setOnClickListener {
+                clickLikeSubject.onNext(card)
             }
         }
 
@@ -309,5 +328,10 @@ class CardsFragment : Fragment() {
             }
             return msg
         }
+    }
+
+    @SuppressLint("HardwareIds")
+    fun getMyId(): String { // Return Device ID
+        return Settings.Secure.getString(activity?.contentResolver, Settings.Secure.ANDROID_ID)
     }
 }

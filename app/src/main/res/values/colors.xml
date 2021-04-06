@@ -1,11 +1,27 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="colorPrimary">#2196F3</color>
-    <color name="colorPrimaryDark">#1976D2</color>
-    <color name="colorAccent">#FF5722</color>
-    <color name="colorButton">#2196F3</color>
-    <color name="colorButtonText">#FFFFFF</color>
+    <color name="colorPrimary">#2196f3</color>
+    <color name="colorPrimaryVariant">#1565c0</color>
+    <color name="colorOnPrimary">@color/white</color>
+    <color name="colorSurface">@color/grey_200</color>
+    <color name="colorOnSurface">#64b5f6</color>
+    <color name="colorSecondary">#01579b</color>
+    <color name="colorSecondaryVariant">#4f83cc</color>
+<!--        <color name="colorSecondaryVariant">@color/black</color>-->
+    <color name="colorOnSecondary">@color/white</color>
+    <color name="colorOnBackground">#000000</color>
+
+    <color name="colorPrimaryNight">#1a237e</color>
+    <color name="colorPrimaryVariantNight">#000051</color>
+    <color name="colorOnPrimaryNight">@color/black</color>
+    <color name="colorSurfaceNight">@color/grey_800</color>
+    <color name="colorOnSurfaceNight">#64b5f6</color>
+    <color name="colorSecondaryNight">@color/black</color>
+    <color name="colorSecondaryVariantNight">#4f83cc</color>
+    <color name="colorOnSecondaryNight">#002f6c</color>
+    <color name="colorOnBackgroundNight">#000000</color>
+
+
     <color name="black">#000000</color>
-    <color name="grey">#FF666666</color>
-    <color name="white">#FFFFFF</color>
+    <color name="white">#ffffff</color>
 </resources>
