@@ -7,13 +7,14 @@ This is the Social Network Service Application anyone can post their card with c
 ![](.README_images/c770f767.png)
 
 
-## Big To-do List 
+## Primary To-do List 
 - [X] Complete Activity Layout (done at 21.04.04)
 - [X] Make Bottom Navigation View (done at 21.04.04)
 - [ ] Add SharedPreference for Profile Info
 - [X] Complete Comment System (done at 21.04.06)
 - [ ] Complete Like System and Use Transaction
-- [ ] Add LongClickListener & Floating Context Menu to Implement Remove Function
+- [X] Add FloatingContextMenu to Implement Modify Operation in Post&Comment Using Firebase Transaction (done at 21.04.07)
+- [ ] Add FloatingContextMenu to Implement Remove Operation in Post&Comment 
 - [X] Introduce FireBase RealTime DB (done at 21.04.05)
 - [ ] Add Realtime Service notice there's new message
 - [ ] Add FCM for new message
@@ -26,6 +27,6 @@ This is the Social Network Service Application anyone can post their card with c
 - [ ] Save UI State with LifeCycle(Preserve Data When Screen Rotates, Listener Restoration)
 
 ----------------
-### Small To-do List 
+### Secondary To-do List 
 - [X] Make UI Better Using Material Design (done at 21.04.06)
 - [ ] Add Dark/Light Theme

@@ -9,12 +9,12 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.gms.tasks.OnSuccessListener
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ServerValue
+import com.google.firebase.database.*
 import com.jakewharton.rxbinding4.view.clicks
 import com.squareup.haha.perflib.Snapshot
 import com.trello.rxlifecycle4.components.support.RxAppCompatActivity
@@ -28,6 +28,7 @@ import java.util.concurrent.TimeUnit
 class WriteActivity : RxAppCompatActivity() {
     lateinit var binding: ActivityWriteBinding
     var intentPostId = ""
+    var intentCommentId = ""
     var mCompositeDisposable = CompositeDisposable()
     var currentBgPosition = 0
     val bgList = mutableListOf(
@@ -44,12 +45,38 @@ class WriteActivity : RxAppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        toast("onCreate")
         binding = ActivityWriteBinding.inflate(layoutInflater)
         setContentView(binding.root)
         val mode = intent.getStringExtra("mode") ?: ""
+        intentPostId = intent.getStringExtra("postId") ?: ""
         val tempModifyCard = intent.getSerializableExtra("post") ?: Post()
         val modifyCard = tempModifyCard as Post
-        intentPostId = intent.getStringExtra("postId") ?: ""
+
+        val tempModifyComment = intent.getSerializableExtra("comment") ?: Comment()
+        val modifyComment = tempModifyComment as Comment
+
+        if (mode == "postModify") {
+            toast("postModify")
+            Glide.with(this)
+                .load(Uri.parse(modifyCard.bgUri))
+                .centerCrop()
+                .into(binding.writeImageView)
+            binding.writeEditText.setText(modifyCard.message)
+            currentBgPosition =  bgList.indexOfFirst { it  == modifyCard.bgUri }
+            if (currentBgPosition == -1) currentBgPosition = 0
+        } else if (mode == "commentModify") {
+            toast("commentModify")
+            Glide.with(this)
+                .load(Uri.parse(modifyComment.bgUri))
+                .centerCrop()
+                .into(binding.writeImageView)
+            binding.writeEditText.setText(modifyComment.message)
+            currentBgPosition =  bgList.indexOfFirst { it  == modifyComment.bgUri }
+            if (currentBgPosition == -1) currentBgPosition = 0
+        } else {
+
+        }
 
         val recyclerViewAdapter = CardBackgroundRecyclerViewAdapter()
         recyclerViewAdapter.cardBackgroundList = bgList
@@ -117,35 +144,87 @@ class WriteActivity : RxAppCompatActivity() {
                                 // Update 기능은.. 수정하는 것 뿐만 아니라 입력, 삭제도 모두 포함.
                                 // 만약 Update 시점에서 없으면 그냥 추가해버린다.
                                 // Exist 하는지를 직접 구현해야할듯
+                                // Transaction 을 이용하자.
+                                // 증가 카운터와 같이 동시 수정으로 인해 손상될 수 있는 데이터를 다루는 경우 트랜잭션 작업을 사용할 수 있습니다.
                                 val newRef =
-                                    FirebaseDatabase.getInstance().getReference("/Posts")
-                                modifyCard.bgUri = bgList[currentBgPosition]
-                                modifyCard.message = binding.writeEditText.text.toString()
-                                val modifyValues = modifyCard.toMap()
-                                val childUpdates = hashMapOf<String, Any?>(
-                                    modifyCard.postId to modifyValues
-                                )
-                                newRef.updateChildren(childUpdates)
-                                    .addOnSuccessListener(this) { toast("카드 수정 성공") }
-                                    .addOnCanceledListener(this) { toast("카드 수정 취소") }
-                                    .addOnFailureListener(this) { toast("카드 수정 실패") }
+                                    FirebaseDatabase.getInstance()
+                                        .getReference("/Posts/${modifyCard.postId}")
+//                                    FirebaseDatabase.getInstance().getReference("/Posts")
+
+                                // Update 쓰려다 취소. Transaction 으로 바꿈
+//                                modifyCard.bgUri = bgList[currentBgPosition]
+//                                modifyCard.message = binding.writeEditText.text.toString()
+//                                val modifyValues = modifyCard.toMap()
+//                                val childUpdates = hashMapOf<String, Any?>(
+//                                    modifyCard.postId to modifyValues
+//                                )
+//                                newRef.updateChildren(childUpdates)
+//                                    .addOnSuccessListener(this) { toast("카드 수정 성공") }
+//                                    .addOnCanceledListener(this) { toast("카드 수정 취소") }
+//                                    .addOnFailureListener(this) { toast("카드 수정 실패") }
+
+                                newRef.runTransaction(object : Transaction.Handler {
+                                    override fun doTransaction(currentData: MutableData): Transaction.Result {
+                                        val p = currentData.getValue(Post::class.java)
+                                            ?: return Transaction.success(currentData)
+
+                                        p.bgUri = bgList[currentBgPosition]
+                                        p.message = binding.writeEditText.text.toString()
+                                        currentData.value = p
+//                                        Toast.makeText(this@WriteActivity,"카드가 수정되었습니다",Toast.LENGTH_SHORT).show()
+                                        Log.d("KHJ","카드가 수정되었습니다")
+                                        return Transaction.success(currentData)
+                                    }
+
+                                    override fun onComplete(
+                                        error: DatabaseError?,
+                                        committed: Boolean,
+                                        currentData: DataSnapshot?
+                                    ) {
+                                        Log.d("KHJ", "postModifyTransaction:onComplete(), $error")
+                                        Log.d("KHJ", "postModifyTransaction:onComplete() committed, $committed")
+                                    }
+                                })
                                 Log.d("KHJ", "Modifying Post ${modifyCard.message}")
                                 finish()
                             }
                             "commentModify" -> {
                                 val newRef =
-                                    FirebaseDatabase.getInstance().getReference("/Comments")
-                                modifyCard.bgUri = bgList[currentBgPosition]
-                                modifyCard.message = binding.writeEditText.text.toString()
-                                val modifyValues = modifyCard.toMap()
-                                val childUpdates = hashMapOf<String, Any?>(
-                                    modifyCard.postId to modifyValues
-                                )
-                                newRef.updateChildren(childUpdates)
-                                    .addOnSuccessListener(this) { toast("카드 수정 성공") }
-                                    .addOnCanceledListener(this) { toast("카드 수정 취소") }
-                                    .addOnFailureListener(this) { toast("카드 수정 실패") }
-                                Log.d("KHJ", "Modifying Post ${modifyCard.message}")
+                                    FirebaseDatabase.getInstance()
+                                        .getReference("/Comments/${modifyComment.postId}/${modifyComment.commentId}")
+//                                modifyCard.bgUri = bgList[currentBgPosition]
+//                                modifyCard.message = binding.writeEditText.text.toString()
+//                                val modifyValues = modifyCard.toMap()
+//                                val childUpdates = hashMapOf<String, Any?>(
+//                                    modifyCard.postId to modifyValues
+//                                )
+//                                newRef.updateChildren(childUpdates)
+//                                    .addOnSuccessListener(this) { toast("카드 수정 성공") }
+//                                    .addOnCanceledListener(this) { toast("카드 수정 취소") }
+//                                    .addOnFailureListener(this) { toast("카드 수정 실패") }
+                                newRef.runTransaction(object : Transaction.Handler {
+                                    override fun doTransaction(currentData: MutableData): Transaction.Result {
+                                        val p = currentData.getValue(Comment::class.java)
+                                            ?: return Transaction.success(currentData)
+
+                                        p.bgUri = bgList[currentBgPosition]
+                                        p.message = binding.writeEditText.text.toString()
+                                        currentData.value = p
+//                                        Toast.makeText(this@WriteActivity,"댓글이 수정되었습니다",Toast.LENGTH_SHORT).show()
+                                        Log.d("KHJ","댓글이 수정되었습니다")
+                                        return Transaction.success(currentData)
+                                    }
+
+                                    override fun onComplete(
+                                        error: DatabaseError?,
+                                        committed: Boolean,
+                                        currentData: DataSnapshot?
+                                    ) {
+                                        Log.d("KHJ", "commentModifyTransaction:onComplete(), $error")
+                                        Log.d("KHJ", "commentModifyTransaction:onComplete() committed, $committed")
+                                    }
+                                })
+                                Log.d("KHJ", "Modifying Comment ${modifyComment.message}")
                                 finish()
 
                             }
@@ -189,12 +268,12 @@ class WriteActivity : RxAppCompatActivity() {
 
         override fun onBindViewHolder(holder: CardBackgroundRecyclerViewHolder, position: Int) {
             var cardBackground = cardBackgroundList[position]
-            Glide.with(applicationContext)
+            Glide.with(this@WriteActivity)
                 .load(Uri.parse(cardBackground))
                 .centerCrop()
                 .into(holder.imageView)
             holder.itemView.setOnClickListener {
-                Glide.with(applicationContext)
+                Glide.with(this@WriteActivity)
                     .load(Uri.parse(cardBackground))
                     .centerCrop()
                     .into(binding.writeImageView)

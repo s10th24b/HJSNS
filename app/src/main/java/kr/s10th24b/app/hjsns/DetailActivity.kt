@@ -1,9 +1,11 @@
 package kr.s10th24b.app.hjsns
 
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import android.provider.Settings
 import android.renderscript.Sampler
 import android.util.Log
 import android.view.*
@@ -28,6 +30,9 @@ class DetailActivity : RxAppCompatActivity() {
     private var intentPostId = ""
     lateinit var postValueEventListener: ValueEventListener
     lateinit var commentChildEventListener: ChildEventListener
+    lateinit var menuCard: Post
+    lateinit var menuComment: Comment
+    lateinit var menuIn: Any
     override fun onCreate(savedInstanceState: Bundle?) {
 //        toast("onCreate")
         super.onCreate(savedInstanceState)
@@ -36,7 +41,6 @@ class DetailActivity : RxAppCompatActivity() {
         val intentPost = intent.getSerializableExtra("post") as Post
         intentPostId = intentPost.postId
 
-        registerForContextMenu(binding.detailRecyclerView)
         binding.detailRecyclerView.adapter = recyclerViewAdapter
         layoutManager =
             LinearLayoutManager(this).apply { orientation = LinearLayoutManager.HORIZONTAL }
@@ -51,26 +55,36 @@ class DetailActivity : RxAppCompatActivity() {
             intent.putExtra("postId", intentPostId)
             startActivity(intent)
         }
-    }
 
-    override fun onCreateContextMenu(
-        menu: ContextMenu,
-        v: View,
-        menuInfo: ContextMenu.ContextMenuInfo?
-    ) {
-        super.onCreateContextMenu(menu, v, menuInfo)
-        Log.d("KHJ","onCreateContextMenu")
-        val inflater = MenuInflater(this)
-        inflater.inflate(R.menu.card_floating_menu, menu)
-//        if (menuInfo) {
-//        menu.findItem(R.id.menu_item_remove).isVisible = false
-//        }
+        binding.detailImageView.setOnCreateContextMenuListener { menu, v, menuInfo ->
+            val post = intentPost
+            menuCard = post
+            menuIn = menuCard
+            val inflater = MenuInflater(this@DetailActivity)
+            inflater.inflate(R.menu.card_floating_menu, menu)
+            //                    menu.setHeaderTitle("메뉴")
+            if (post.writerId == getMyId()) {
+                menu.removeItem(R.id.menu_item_report)
+            } else {
+                menu.removeItem(R.id.menu_item_remove)
+                menu.removeItem(R.id.menu_item_modify)
+            }
+        }
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
-        val info = item.menuInfo as AdapterView.AdapterContextMenuInfo
+//        val info = item.menuInfo as AdapterView.AdapterContextMenuInfo
         return when (item.itemId) {
             R.id.menu_item_modify -> {
+                val intent = Intent(this, WriteActivity::class.java)
+                if (menuIn is Post) {
+                    intent.putExtra("mode", "postModify")
+                    intent.putExtra("post", menuCard)
+                } else if (menuIn is Comment) {
+                    intent.putExtra("mode", "commentModify")
+                    intent.putExtra("comment", menuComment)
+                }
+                startActivity(intent)
                 true
             }
             R.id.menu_item_remove -> {
@@ -79,9 +93,12 @@ class DetailActivity : RxAppCompatActivity() {
             R.id.menu_item_report -> {
                 true
             }
-            else -> super.onContextItemSelected(item)
+            else -> {
+                super.onContextItemSelected(item)
+            }
         }
     }
+
 
     override fun onStop() {
 //        toast("onStop")
@@ -114,8 +131,10 @@ class DetailActivity : RxAppCompatActivity() {
     }
 
     override fun onDestroy() {
-        FirebaseDatabase.getInstance().getReference("/Posts/$intentPostId") .removeEventListener(postValueEventListener)
-        FirebaseDatabase.getInstance().getReference("/Comments/$intentPostId") .removeEventListener(commentChildEventListener)
+        FirebaseDatabase.getInstance().getReference("/Posts/$intentPostId")
+            .removeEventListener(postValueEventListener)
+        FirebaseDatabase.getInstance().getReference("/Comments/$intentPostId")
+            .removeEventListener(commentChildEventListener)
         unregisterForContextMenu(binding.detailRecyclerView)
 //        FirebaseDatabase.getInstance().getReference("/Comments/$") .removeEventListener(valueEventListener)
         super.onDestroy()
@@ -212,12 +231,16 @@ class DetailActivity : RxAppCompatActivity() {
                 .child("commentCount")
         postCommentCountRef.get().addOnSuccessListener(this@DetailActivity) {
             postCommentCountRef.setValue(it.value.toString().toInt() - 1)
-        }.addOnCanceledListener(this@DetailActivity) { Log.d("KHJ", "Error getting data from $postId") }
+        }.addOnCanceledListener(this@DetailActivity) {
+            Log.d(
+                "KHJ",
+                "Error getting data from $postId"
+            )
+        }
         ///
     }
 
-    inner class DetailRecyclerViewAdapter :
-        RecyclerView.Adapter<DetailRecyclerViewHolder>() {
+    inner class DetailRecyclerViewAdapter : RecyclerView.Adapter<DetailRecyclerViewHolder>() {
         val commentList = mutableListOf<Comment>()
         override fun onCreateViewHolder(
             parent: ViewGroup,
@@ -231,17 +254,18 @@ class DetailActivity : RxAppCompatActivity() {
 
         override fun onBindViewHolder(holder: DetailRecyclerViewHolder, position: Int) {
             val comment = commentList[position]
-            holder.bind(comment)
+            holder.bind(comment, position)
         }
 
         override fun getItemCount() = commentList.size
     }
 
     inner class DetailRecyclerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+
         var binding = CardCommentBinding.bind(itemView)
         private val commentImageView = binding.cardCommentImageView
         private val commentTextView = binding.cardCommentTextView
-        fun bind(comment: Comment) {
+        fun bind(comment: Comment, position: Int) {
             Glide.with(this@DetailActivity)
                 .load(Uri.parse(comment.bgUri))
                 .centerCrop()
@@ -249,6 +273,21 @@ class DetailActivity : RxAppCompatActivity() {
             commentTextView.text = comment.message
             binding.root.setOnClickListener {
 //                    clickCardSubject.onNext(card)
+            }
+            binding.root.setOnCreateContextMenuListener { menu, v, menuInfo ->
+                val comm = recyclerViewAdapter.commentList[position]
+                menuComment = comm
+                menuIn = menuComment
+                Toast.makeText(this@DetailActivity,"menuIn is initialized!",Toast.LENGTH_SHORT).show()
+                val inflater = MenuInflater(this@DetailActivity)
+                inflater.inflate(R.menu.card_floating_menu, menu)
+                //                    menu.setHeaderTitle("메뉴")
+                if (comm.writerId == getMyId()) {
+                    menu.removeItem(R.id.menu_item_report)
+                } else {
+                    menu.removeItem(R.id.menu_item_remove)
+                    menu.removeItem(R.id.menu_item_modify)
+                }
             }
         }
     }
@@ -275,5 +314,10 @@ class DetailActivity : RxAppCompatActivity() {
             msg = sdf.format(regTime)
         }
         return msg
+    }
+
+    @SuppressLint("HardwareIds")
+    fun getMyId(): String { // Return Device ID
+        return Settings.Secure.getString(this.contentResolver, Settings.Secure.ANDROID_ID)
     }
 }

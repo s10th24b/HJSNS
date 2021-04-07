@@ -309,8 +309,7 @@ class CardsFragment : RxFragment() {
         override fun getItemCount() = cardList.size
     }
 
-    inner class CardRecyclerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
-        View.OnCreateContextMenuListener {
+    inner class CardRecyclerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var binding = CardPostRecyclerBinding.bind(itemView)
 
 
@@ -375,6 +374,8 @@ class CardsFragment : RxFragment() {
             // 이 방식은 register 로 일반적으로 하는 방식이나, 나는 register 함수를 못쓰기에,
             // 직접 뷰홀더 클래스에 View.OnCreateContextMenuListener를 구현해줘서 뷰 홀더 클래스 내에서
             // onCreateContext 함수를 오버라이딩 해서 써줬다.
+
+            // -> 생각해보니까 오버라이딩 안하고 그냥 objet :  로 구현하면 될 것 같다.
             // 그리고 기존에 클릭이벤트와 겹쳤던 거에다가 setOnCreateContextMenuListener를 걸어주면 끝.
             //  메뉴도 직접 지정할 수 있더라. 그래서 이제 카드의 정보를 onCreateContextMenu 로 넘겨주고
             // 내가 이 카드의 작성자인지 아닌지를 판별할 수 있는지 찾아봐야한다.
@@ -458,14 +459,6 @@ class CardsFragment : RxFragment() {
                         }
                     })
             }
-        }
-
-        override fun onCreateContextMenu(
-            menu: ContextMenu,
-            v: View,
-            menuInfo: ContextMenu.ContextMenuInfo?
-        ) {
-
         }
 
 
