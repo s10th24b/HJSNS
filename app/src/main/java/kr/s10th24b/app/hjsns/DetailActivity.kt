@@ -29,7 +29,7 @@ class DetailActivity : AppCompatActivity() {
     lateinit var postValueEventListener: ValueEventListener
     lateinit var commentChildEventListener: ChildEventListener
     override fun onCreate(savedInstanceState: Bundle?) {
-        toast("onCreate")
+//        toast("onCreate")
         super.onCreate(savedInstanceState)
         binding = ActivityDetailBinding.inflate(layoutInflater)
         setContentView(binding.root)
@@ -53,7 +53,7 @@ class DetailActivity : AppCompatActivity() {
     }
 
     override fun onStop() {
-        toast("onStop")
+//        toast("onStop")
         super.onStop()
     }
 

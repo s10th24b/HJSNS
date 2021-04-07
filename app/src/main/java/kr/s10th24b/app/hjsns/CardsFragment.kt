@@ -5,12 +5,12 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.opengl.Visibility
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.widget.AdapterView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -51,6 +51,7 @@ class CardsFragment : Fragment() {
             Log.d("KHJ", "savedInstanceState is not null!")
         }
         binding = FragmentCardsBinding.inflate(layoutInflater)
+        registerForContextMenu(binding.cardsFragmentRecyclerView)
         arguments?.let {
         }
 
@@ -206,6 +207,36 @@ class CardsFragment : Fragment() {
     // 만약 여기서 Manager Service가 있어서 딱 단 하나만 존재하는, 서버급의 서비스가 존재해서 이 데이터 조작들을 총괄해준다면 어떨까?
     // 이 때는 단 하나의 리스너만 존재하므로 기존에 multi user 를 고려해서 CRUD안에 CRUD 를 넣지 못했던 걸 넣을 수 있다.
 
+    override fun onCreateContextMenu(
+        menu: ContextMenu,
+        v: View,
+        menuInfo: ContextMenu.ContextMenuInfo?
+    ) {
+        Log.d("KHJ","onCreateContextMenu")
+        super.onCreateContextMenu(menu, v, menuInfo)
+        val inflater = MenuInflater(context)
+        inflater.inflate(R.menu.card_floating_menu, menu)
+//        if (menuInfo) {
+//        menu.findItem(R.id.menu_item_remove).isVisible = false
+//        }
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        val info = item.menuInfo as AdapterView.AdapterContextMenuInfo
+        return when (item.itemId) {
+            R.id.menu_item_modify -> {
+                true
+            }
+            R.id.menu_item_remove -> {
+                true
+            }
+            R.id.menu_item_report -> {
+                true
+            }
+            else -> super.onContextItemSelected(item)
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -216,6 +247,7 @@ class CardsFragment : Fragment() {
         binding = FragmentCardsBinding.inflate(layoutInflater)
         binding.cardsFragmentRecyclerView.layoutManager = layoutManager
         binding.cardsFragmentRecyclerView.adapter = recyclerViewAdapter
+        // You should unregister this menu!
         return binding.root
     }
 
@@ -264,10 +296,12 @@ class CardsFragment : Fragment() {
     override fun onDestroy() {
 //        toast("onDestroy!")
         mCompositeDisposable.clear()
+        unregisterForContextMenu(binding.cardsFragmentRecyclerView)
         super.onDestroy()
     }
 
     inner class CardRecyclerViewAdapter :
+
         RecyclerView.Adapter<CardRecyclerViewHolder>() {
         val cardList = mutableListOf<Post>()
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CardRecyclerViewHolder {
@@ -287,6 +321,7 @@ class CardsFragment : Fragment() {
 
     inner class CardRecyclerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         var binding = CardPostRecyclerBinding.bind(itemView)
+
         fun bind(card: Post) {
             Glide.with(itemView.context)
                 .load(Uri.parse(card.bgUri))

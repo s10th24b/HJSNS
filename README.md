@@ -13,7 +13,7 @@ This is the Social Network Service Application anyone can post their card with c
 - [ ] Add SharedPreference for Profile Info
 - [X] Complete Comment System (done at 21.04.06)
 - [ ] Complete Like System and Use Transaction
-- [ ] Add LongClickListener to Implement Remove Function
+- [ ] Add LongClickListener & Floating Context Menu to Implement Remove Function
 - [X] Introduce FireBase RealTime DB (done at 21.04.05)
 - [ ] Add Realtime Service notice there's new message
 - [ ] Add FCM for new message
