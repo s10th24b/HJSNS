@@ -6,21 +6,21 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.renderscript.Sampler
 import android.util.Log
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import android.widget.AdapterView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.database.*
+import com.trello.rxlifecycle4.components.support.RxAppCompatActivity
 import kr.s10th24b.app.hjsns.databinding.ActivityDetailBinding
 import kr.s10th24b.app.hjsns.databinding.CardCommentBinding
 import splitties.toast.toast
 import java.text.SimpleDateFormat
 import java.util.*
 
-class DetailActivity : AppCompatActivity() {
+class DetailActivity : RxAppCompatActivity() {
     lateinit var binding: ActivityDetailBinding
     lateinit var layoutManager: LinearLayoutManager
     var recyclerViewAdapter = DetailRecyclerViewAdapter()
@@ -36,6 +36,7 @@ class DetailActivity : AppCompatActivity() {
         val intentPost = intent.getSerializableExtra("post") as Post
         intentPostId = intentPost.postId
 
+        registerForContextMenu(binding.detailRecyclerView)
         binding.detailRecyclerView.adapter = recyclerViewAdapter
         layoutManager =
             LinearLayoutManager(this).apply { orientation = LinearLayoutManager.HORIZONTAL }
@@ -49,6 +50,36 @@ class DetailActivity : AppCompatActivity() {
             intent.putExtra("mode", "comment")
             intent.putExtra("postId", intentPostId)
             startActivity(intent)
+        }
+    }
+
+    override fun onCreateContextMenu(
+        menu: ContextMenu,
+        v: View,
+        menuInfo: ContextMenu.ContextMenuInfo?
+    ) {
+        super.onCreateContextMenu(menu, v, menuInfo)
+        Log.d("KHJ","onCreateContextMenu")
+        val inflater = MenuInflater(this)
+        inflater.inflate(R.menu.card_floating_menu, menu)
+//        if (menuInfo) {
+//        menu.findItem(R.id.menu_item_remove).isVisible = false
+//        }
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+        val info = item.menuInfo as AdapterView.AdapterContextMenuInfo
+        return when (item.itemId) {
+            R.id.menu_item_modify -> {
+                true
+            }
+            R.id.menu_item_remove -> {
+                true
+            }
+            R.id.menu_item_report -> {
+                true
+            }
+            else -> super.onContextItemSelected(item)
         }
     }
 
@@ -85,6 +116,7 @@ class DetailActivity : AppCompatActivity() {
     override fun onDestroy() {
         FirebaseDatabase.getInstance().getReference("/Posts/$intentPostId") .removeEventListener(postValueEventListener)
         FirebaseDatabase.getInstance().getReference("/Comments/$intentPostId") .removeEventListener(commentChildEventListener)
+        unregisterForContextMenu(binding.detailRecyclerView)
 //        FirebaseDatabase.getInstance().getReference("/Comments/$") .removeEventListener(valueEventListener)
         super.onDestroy()
     }

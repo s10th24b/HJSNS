@@ -83,6 +83,9 @@ dependencies {
     // https://firebase.google.com/docs/android/setup#available-libraries
     implementation 'com.google.firebase:firebase-database:19.7.0'
 
+    implementation 'com.trello.rxlifecycle4:rxlifecycle-kotlin:4.0.2'
+    implementation 'com.trello.rxlifecycle4:rxlifecycle-android:4.0.2'
+    implementation 'com.trello.rxlifecycle4:rxlifecycle-components:4.0.2'
     implementation 'io.reactivex.rxjava3:rxandroid:3.0.0'
     implementation "io.reactivex.rxjava3:rxjava:3.0.11"
     implementation 'com.jakewharton.rxbinding4:rxbinding:4.0.0'

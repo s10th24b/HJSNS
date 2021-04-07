@@ -5,18 +5,17 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
-import android.opengl.Visibility
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.view.*
-import android.widget.AdapterView
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.database.*
+import com.trello.rxlifecycle4.components.support.RxFragment
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -28,7 +27,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class CardsFragment : Fragment() {
+class CardsFragment : RxFragment() {
     lateinit var binding: FragmentCardsBinding
     lateinit var recyclerViewAdapter: CardRecyclerViewAdapter
     lateinit var layoutManager: LinearLayoutManager
@@ -37,6 +36,7 @@ class CardsFragment : Fragment() {
     val mCompositeDisposable = CompositeDisposable()
     lateinit var postValueEventListener: ValueEventListener
     lateinit var commentChildEventListener: ChildEventListener
+    lateinit var menuCard: Post
 
     //    lateinit var mState: Bundle
     var alreadyCreated = false
@@ -50,8 +50,7 @@ class CardsFragment : Fragment() {
         } else {
             Log.d("KHJ", "savedInstanceState is not null!")
         }
-        binding = FragmentCardsBinding.inflate(layoutInflater)
-        registerForContextMenu(binding.cardsFragmentRecyclerView)
+        // this registration is removed in onDestroy()
         arguments?.let {
         }
 
@@ -59,6 +58,28 @@ class CardsFragment : Fragment() {
             setFirebaseDatabasePostListener()
         }
         setClickCardSubject()
+    }
+
+    override fun onContextItemSelected(item: MenuItem): Boolean {
+//        val info = item.menuInfo as AdapterView.AdapterContextMenuInfo
+        return when (item.itemId) {
+            R.id.menu_item_modify -> {
+                val intent = Intent(context, WriteActivity::class.java)
+                intent.putExtra("mode", "postModify")
+                intent.putExtra("post", menuCard)
+                startActivity(intent)
+                true
+            }
+            R.id.menu_item_remove -> {
+                true
+            }
+            R.id.menu_item_report -> {
+                true
+            }
+            else -> {
+                super.onContextItemSelected(item)
+            }
+        }
     }
 
     private fun setClickCardSubject() {
@@ -79,7 +100,7 @@ class CardsFragment : Fragment() {
         FirebaseDatabase.getInstance().getReference("/Posts")
             .orderByChild("writeTime").addChildEventListener(object : ChildEventListener {
                 override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {
-                    toast("onChildAdded()")
+//                    toast("onChildAdded()")
                     snapshot.let { ss ->
                         val post = ss.getValue(Post::class.java)
                         post?.let { newPost ->
@@ -116,7 +137,7 @@ class CardsFragment : Fragment() {
                 }
 
                 override fun onChildChanged(snapshot: DataSnapshot, previousChildName: String?) {
-                    toast("onChildChanged()")
+//                    toast("onChildChanged()")
                     snapshot.let { ss ->
                         //snapshot의 데이터를 Post의 객체로
                         val post = ss.getValue(Post::class.java)
@@ -134,7 +155,7 @@ class CardsFragment : Fragment() {
                 }
 
                 override fun onChildRemoved(snapshot: DataSnapshot) {
-                    toast("onChildRemoved()")
+//                    toast("onChildRemoved()")
                     snapshot.let { ss ->
                         //snapshot의 데이터를 Post의 객체로 가져옴
                         val post = ss.getValue(Post::class.java)
@@ -152,7 +173,7 @@ class CardsFragment : Fragment() {
                 }
 
                 override fun onChildMoved(snapshot: DataSnapshot, previousChildName: String?) {
-                    toast("onChildMoved()")
+//                    toast("onChildMoved()")
                     snapshot.let { ss ->
                         //snapshot의 데이터를 Post의 객체로
                         val post = ss.getValue(Post::class.java)
@@ -207,35 +228,6 @@ class CardsFragment : Fragment() {
     // 만약 여기서 Manager Service가 있어서 딱 단 하나만 존재하는, 서버급의 서비스가 존재해서 이 데이터 조작들을 총괄해준다면 어떨까?
     // 이 때는 단 하나의 리스너만 존재하므로 기존에 multi user 를 고려해서 CRUD안에 CRUD 를 넣지 못했던 걸 넣을 수 있다.
 
-    override fun onCreateContextMenu(
-        menu: ContextMenu,
-        v: View,
-        menuInfo: ContextMenu.ContextMenuInfo?
-    ) {
-        Log.d("KHJ","onCreateContextMenu")
-        super.onCreateContextMenu(menu, v, menuInfo)
-        val inflater = MenuInflater(context)
-        inflater.inflate(R.menu.card_floating_menu, menu)
-//        if (menuInfo) {
-//        menu.findItem(R.id.menu_item_remove).isVisible = false
-//        }
-    }
-
-    override fun onContextItemSelected(item: MenuItem): Boolean {
-        val info = item.menuInfo as AdapterView.AdapterContextMenuInfo
-        return when (item.itemId) {
-            R.id.menu_item_modify -> {
-                true
-            }
-            R.id.menu_item_remove -> {
-                true
-            }
-            R.id.menu_item_report -> {
-                true
-            }
-            else -> super.onContextItemSelected(item)
-        }
-    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -247,7 +239,6 @@ class CardsFragment : Fragment() {
         binding = FragmentCardsBinding.inflate(layoutInflater)
         binding.cardsFragmentRecyclerView.layoutManager = layoutManager
         binding.cardsFragmentRecyclerView.adapter = recyclerViewAdapter
-        // You should unregister this menu!
         return binding.root
     }
 
@@ -296,7 +287,6 @@ class CardsFragment : Fragment() {
     override fun onDestroy() {
 //        toast("onDestroy!")
         mCompositeDisposable.clear()
-        unregisterForContextMenu(binding.cardsFragmentRecyclerView)
         super.onDestroy()
     }
 
@@ -313,16 +303,20 @@ class CardsFragment : Fragment() {
 
         override fun onBindViewHolder(holder: CardRecyclerViewHolder, position: Int) {
             val card = cardList[position]
-            holder.bind(card)
+            holder.bind(card, position)
         }
 
         override fun getItemCount() = cardList.size
     }
 
-    inner class CardRecyclerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class CardRecyclerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView),
+        View.OnCreateContextMenuListener {
         var binding = CardPostRecyclerBinding.bind(itemView)
 
-        fun bind(card: Post) {
+
+        fun bind(card: Post, position: Int) {
+            itemView.setOnClickListener { }
+            Log.d("KHJ", adapterPosition.toString())
             Glide.with(itemView.context)
                 .load(Uri.parse(card.bgUri))
                 .centerCrop()
@@ -358,14 +352,55 @@ class CardsFragment : Fragment() {
             // 헌데, 특정 포스트가 삭제되면, 그와 관련된 Interval Observable도 dispose 해줘야 하는데...
             // 그건 구현을 어떻게 하지? 그 Observable reference 를 어떻게 구하지?
             // 이렇게 있으면 또 recyclerView에서 holder가 없어져도 Observable을 갖고있어서 GC되지 않을텐데..
+            // # Solved -> Wow!!! RxLifeCycle is Amazing!!
+            binding.timeTextView.text = formatTimeString(card.writeTime as Long)
             mCompositeDisposable.add(Observable.interval(60L, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
+                .compose(this@CardsFragment.bindToLifecycle())
                 .subscribe {
                     binding.timeTextView.text = formatTimeString(card.writeTime as Long)
                 })
             binding.cardImageView.setOnClickListener {
                 clickCardSubject.onNext(card)
             }
+//            registerForContextMenu(binding.cardMoreMenuImageView)
+            // 1. 일단 registerForContextMenu 파라미터로 리스트뷰나 그리드뷰를 넣으면 작동하지만,
+            // 리사이클러뷰는 View.ViewGroup을 상속받기에 작동하지 않더라.. 그래서 바인드 뷰홀더에 직접 해야한다.
+            // 2.
+            // 기존 Reference에 존재하는 registerForContextMenu를 활용하면 일일이 onLongClickListener
+            // 로 하지 않아도 자동으로 길게 누르면 context menu가 뜨도록 해준다. 하지만 이렇게 하니까
+            // same element에 대해서 click Listener가 존재하면 클릭 리스너만 반응을 하는 문제가 있어서
+            // 긴 삽질을 통해 유튜브에서 인도 프로그래머의 영상을 봤다. 이하 그의 영상내용.
+            // 기존에는 onCreateContextMenu 와 onContextItemSelected를 Fragment에다가 선언했는데,
+            // 이 방식은 register 로 일반적으로 하는 방식이나, 나는 register 함수를 못쓰기에,
+            // 직접 뷰홀더 클래스에 View.OnCreateContextMenuListener를 구현해줘서 뷰 홀더 클래스 내에서
+            // onCreateContext 함수를 오버라이딩 해서 써줬다.
+            // 그리고 기존에 클릭이벤트와 겹쳤던 거에다가 setOnCreateContextMenuListener를 걸어주면 끝.
+            //  메뉴도 직접 지정할 수 있더라. 그래서 이제 카드의 정보를 onCreateContextMenu 로 넘겨주고
+            // 내가 이 카드의 작성자인지 아닌지를 판별할 수 있는지 찾아봐야한다.
+
+            // override 에서 처리하는 게 아니라, bind 함수 내에서 바로 구현하면서 position 을 이용했다.
+
+            binding.cardImageView.setOnCreateContextMenuListener(object :
+                View.OnCreateContextMenuListener {
+                override fun onCreateContextMenu(
+                    menu: ContextMenu,
+                    v: View?,
+                    menuInfo: ContextMenu.ContextMenuInfo?
+                ) {
+                    val card = recyclerViewAdapter.cardList[position]
+                    menuCard = card
+                    val inflater = MenuInflater(activity)
+                    inflater.inflate(R.menu.card_floating_menu, menu)
+//                    menu.setHeaderTitle("메뉴")
+                    if (card.writerId == getMyId()) {
+                        menu.removeItem(R.id.menu_item_report)
+                    } else {
+                        menu.removeItem(R.id.menu_item_remove)
+                        menu.removeItem(R.id.menu_item_modify)
+                    }
+                }
+            })
             binding.likeImageView.setOnClickListener {
                 val likeRef = FirebaseDatabase.getInstance().getReference("Like/${card.postId}")
                 // a 가 Unit 이다... ValueEventListener 를 반환해야 remove가능한데...
@@ -424,6 +459,15 @@ class CardsFragment : Fragment() {
                     })
             }
         }
+
+        override fun onCreateContextMenu(
+            menu: ContextMenu,
+            v: View,
+            menuInfo: ContextMenu.ContextMenuInfo?
+        ) {
+
+        }
+
 
         fun formatTimeString(regTime: Long): String? {
             val SEC = 60

@@ -4,11 +4,14 @@
 
     <item
         android:id="@+id/menu_item_remove"
+        android:icon="@android:drawable/ic_delete"
         android:title="삭제" />
     <item
         android:id="@+id/menu_item_modify"
+        android:icon="@android:drawable/ic_menu_edit"
         android:title="수정" />
     <item
         android:id="@+id/menu_item_report"
+        android:icon="@android:drawable/ic_dialog_alert"
         android:title="신고" />
 </menu>

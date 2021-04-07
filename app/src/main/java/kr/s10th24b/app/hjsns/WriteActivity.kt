@@ -17,6 +17,7 @@ import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ServerValue
 import com.jakewharton.rxbinding4.view.clicks
 import com.squareup.haha.perflib.Snapshot
+import com.trello.rxlifecycle4.components.support.RxAppCompatActivity
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import kr.s10th24b.app.hjsns.databinding.ActivityWriteBinding
@@ -24,9 +25,9 @@ import kr.s10th24b.app.hjsns.databinding.CardBackgroundBinding
 import splitties.toast.toast
 import java.util.concurrent.TimeUnit
 
-class WriteActivity : AppCompatActivity() {
+class WriteActivity : RxAppCompatActivity() {
     lateinit var binding: ActivityWriteBinding
-    var commentPostId = ""
+    var intentPostId = ""
     var mCompositeDisposable = CompositeDisposable()
     var currentBgPosition = 0
     val bgList = mutableListOf(
@@ -45,8 +46,10 @@ class WriteActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityWriteBinding.inflate(layoutInflater)
         setContentView(binding.root)
-        val mode = intent.getStringExtra("mode")
-        commentPostId = intent.getStringExtra("postId") ?: ""
+        val mode = intent.getStringExtra("mode") ?: ""
+        val tempModifyCard = intent.getSerializableExtra("post") ?: Post()
+        val modifyCard = tempModifyCard as Post
+        intentPostId = intent.getStringExtra("postId") ?: ""
 
         val recyclerViewAdapter = CardBackgroundRecyclerViewAdapter()
         recyclerViewAdapter.cardBackgroundList = bgList
@@ -72,6 +75,9 @@ class WriteActivity : AppCompatActivity() {
                                 post.writerId = getMyId()
                                 post.postId = newRef.key.toString()
                                 newRef.setValue(post)
+                                    .addOnSuccessListener(this) { toast("카드 작성 성공") }
+                                    .addOnCanceledListener(this) { toast("카드 작성 취소") }
+                                    .addOnFailureListener(this) { toast("카드 작성 실패") }
                                 Log.d("KHJ", "Adding Post ${post.message}")
 //                                toast("카드 작성 성공")
                                 finish()
@@ -80,12 +86,12 @@ class WriteActivity : AppCompatActivity() {
                                 val comment = Comment()
                                 val newRef =
                                     FirebaseDatabase.getInstance()
-                                        .getReference("Comments/$commentPostId").push()
+                                        .getReference("Comments/$intentPostId").push()
                                 comment.writeTime = ServerValue.TIMESTAMP
                                 comment.bgUri = bgList[currentBgPosition]
                                 comment.message = binding.writeEditText.text.toString()
                                 comment.writerId = getMyId()
-                                comment.postId = commentPostId
+                                comment.postId = intentPostId
                                 comment.commentId = newRef.key.toString()
                                 newRef.setValue(comment)
                                 Log.d("KHJ", "Adding Comment ${comment.message}")
@@ -93,15 +99,55 @@ class WriteActivity : AppCompatActivity() {
                                 // here, right.
                                 val postCommentCountRef =
                                     FirebaseDatabase.getInstance()
-                                        .getReference("Posts/$commentPostId")
+                                        .getReference("Posts/$intentPostId")
                                         .child("commentCount")
                                 postCommentCountRef.get().addOnSuccessListener(this) {
                                     postCommentCountRef.setValue(it.value.toString().toInt() + 1)
-                                }.addOnCanceledListener(this) {
-                                    Log.d("KHJ", "Error getting data from $commentPostId")
                                 }
+                                    .addOnSuccessListener(this) { toast("댓글 작성 성공") }
+                                    .addOnCanceledListener(this) { toast("댓글 작성 취소") }
+                                    .addOnFailureListener(this) { toast("댓글 작성 실패") }
 //                                toast("댓글 작성 성공")
                                 finish()
+                            }
+                            "postModify" -> {
+                                // 존재하는지 확인. 수정하는 도중에 지워질수도... 는 관리자 생각 안하니까 없나..?
+                                // 혹시 모르니까 넣을까?
+                                // 아니. 안전하게 Firebase 의 Update 기능을 이용한다.
+                                // Update 기능은.. 수정하는 것 뿐만 아니라 입력, 삭제도 모두 포함.
+                                // 만약 Update 시점에서 없으면 그냥 추가해버린다.
+                                // Exist 하는지를 직접 구현해야할듯
+                                val newRef =
+                                    FirebaseDatabase.getInstance().getReference("/Posts")
+                                modifyCard.bgUri = bgList[currentBgPosition]
+                                modifyCard.message = binding.writeEditText.text.toString()
+                                val modifyValues = modifyCard.toMap()
+                                val childUpdates = hashMapOf<String, Any?>(
+                                    modifyCard.postId to modifyValues
+                                )
+                                newRef.updateChildren(childUpdates)
+                                    .addOnSuccessListener(this) { toast("카드 수정 성공") }
+                                    .addOnCanceledListener(this) { toast("카드 수정 취소") }
+                                    .addOnFailureListener(this) { toast("카드 수정 실패") }
+                                Log.d("KHJ", "Modifying Post ${modifyCard.message}")
+                                finish()
+                            }
+                            "commentModify" -> {
+                                val newRef =
+                                    FirebaseDatabase.getInstance().getReference("/Comments")
+                                modifyCard.bgUri = bgList[currentBgPosition]
+                                modifyCard.message = binding.writeEditText.text.toString()
+                                val modifyValues = modifyCard.toMap()
+                                val childUpdates = hashMapOf<String, Any?>(
+                                    modifyCard.postId to modifyValues
+                                )
+                                newRef.updateChildren(childUpdates)
+                                    .addOnSuccessListener(this) { toast("카드 수정 성공") }
+                                    .addOnCanceledListener(this) { toast("카드 수정 취소") }
+                                    .addOnFailureListener(this) { toast("카드 수정 실패") }
+                                Log.d("KHJ", "Modifying Post ${modifyCard.message}")
+                                finish()
+
                             }
                             else -> {
                                 error("error in writeShareButton")
