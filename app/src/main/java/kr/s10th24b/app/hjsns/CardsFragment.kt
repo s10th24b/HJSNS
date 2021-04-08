@@ -123,6 +123,7 @@ class CardsFragment : RxFragment() {
 //                                toast("새 글이 마지막부분에 추가")
                                 recyclerViewAdapter.cardList.add(newPost as Post)
                                 recyclerViewAdapter.notifyItemInserted(0)
+                                recyclerViewAdapter.notifyDataSetChanged()
 //                                recyclerViewAdapter.notifyDataSetChanged()
                             } else { // 글이 중간에 삽입된 경우... 근데 이건 이 앱에선 상관없음. 무조건 마지막에 추가되도록 했으니.
 //                                toast("새 글이 중간에 추가")
@@ -131,6 +132,7 @@ class CardsFragment : RxFragment() {
 //                                    recyclerViewAdapter.cardList.add(prevIndex + 1, newPost)
                                 recyclerViewAdapter.cardList.add(newPost)
                                 recyclerViewAdapter.notifyItemInserted(recyclerViewAdapter.cardList.lastIndex)
+                                recyclerViewAdapter.notifyDataSetChanged()
                                 val firstCompVisPos =
                                     layoutManager.findFirstCompletelyVisibleItemPosition()
 //                                val visibleItemCount = binding.cardsFragmentRecyclerView.childCount
@@ -161,6 +163,7 @@ class CardsFragment : RxFragment() {
                             if (newPost != null) {
                                 recyclerViewAdapter.cardList[prevIndex + 1] = newPost
                                 recyclerViewAdapter.notifyItemChanged(prevIndex + 1)
+                                recyclerViewAdapter.notifyDataSetChanged()
                             } else {
                                 error("Error in onChildChanged!")
                             }
@@ -179,6 +182,7 @@ class CardsFragment : RxFragment() {
                             if (existIndex != -1) {
                                 recyclerViewAdapter.cardList.removeAt(existIndex)
                                 recyclerViewAdapter.notifyItemRemoved(existIndex)
+                                recyclerViewAdapter.notifyDataSetChanged()
                             } else {
                                 recyclerViewAdapter.notifyDataSetChanged()
                             }
@@ -196,10 +200,12 @@ class CardsFragment : RxFragment() {
                                 .indexOfFirst { it.postId == newPost?.postId }
                             recyclerViewAdapter.cardList.removeAt(existIndex)
                             recyclerViewAdapter.notifyItemRemoved(existIndex)
+                            recyclerViewAdapter.notifyDataSetChanged()
                             // prevChildName 이 없는 경우 맨 마지막으로 이동된 것
                             if (previousChildName == null) {
                                 recyclerViewAdapter.cardList.add(newPost!!)
                                 recyclerViewAdapter.notifyItemInserted(recyclerViewAdapter.cardList.lastIndex)
+                                recyclerViewAdapter.notifyDataSetChanged()
                             } else {
                                 // prevChildName 다음 글로 추가
                                 val prevIndex =
@@ -207,6 +213,7 @@ class CardsFragment : RxFragment() {
                                 if (prevIndex != -1) {
                                     recyclerViewAdapter.cardList.add(prevIndex + 1, newPost!!)
                                     recyclerViewAdapter.notifyItemInserted(prevIndex + 1)
+                                    recyclerViewAdapter.notifyDataSetChanged()
                                 } else {
                                     error("Error in onChildMoved!")
 
@@ -236,7 +243,6 @@ class CardsFragment : RxFragment() {
     // 하지만, 만약 Post가 지워질 때 관련된 코멘트와 좋아요를 없애려고 Post의 CRUD Op에 다른 클라우드 데이터인 Comment 와 Like
     // 를 remove 하는 Op 을 넣는다면? 이렇게 되면 다른 클라우드 데이터를 다루게 되므로 "비독립적"이게 되며, 곧
     // multi-user 환경에서는 Comment 와 Like를 한번만 지워야 할거를 N명의 사람이 있으면 N번 지우게 되는 것이다.
-
 
     // 하지만, DB 를 직접 지우거나 할때는 적용이 안된다. Comment 를 DB에서 직접 지워버리면,  setValue 이벤트가 작동을 안하기 때문.
     // 만약 여기서 Manager Service가 있어서 딱 단 하나만 존재하는, 서버급의 서비스가 존재해서 이 데이터 조작들을 총괄해준다면 어떨까?
@@ -410,7 +416,7 @@ class CardsFragment : RxFragment() {
             }
             binding.likeImageView.clicks()
                 .observeOn(AndroidSchedulers.mainThread())
-                .debounce(300L,TimeUnit.MILLISECONDS)
+                .debounce(300L, TimeUnit.MILLISECONDS)
                 .subscribe {
                     val likeRef =
                         FirebaseDatabase.getInstance().getReference("Likes/${card.postId}")
@@ -418,14 +424,19 @@ class CardsFragment : RxFragment() {
                     likeRef.orderByChild("likerId").equalTo(getMyId())
                         .addListenerForSingleValueEvent(object : ValueEventListener {
                             override fun onDataChange(snapshot: DataSnapshot) {
+                                Log.d("KHJ", "onDataChange in likeClick")
                                 if (snapshot.exists()) {
-                                    toast("newLike false")
+//                                    toast("newLike false")
                                     Log.d("KHJ", "newLike false")
                                     Glide.with(this@CardsFragment)
                                         .load(R.drawable.lb_ic_thumb_up_outline)
                                         .into(binding.likeImageView)
-                                    likeRef.child(snapshot.getValue(Like::class.java)!!.likeId)
-                                        .removeValue()
+                                    for (ch in snapshot.children) {
+                                        if (ch.child("likerId").value == getMyId()) {
+                                            val removeLikeRef = likeRef.child(ch.getValue(Like::class.java)!!.likeId)
+                                            removeLikeRef.removeValue()
+                                        }
+                                    }
                                     val postRef = FirebaseDatabase.getInstance()
                                         .getReference("Posts/${card.postId}")
                                     postRef.runTransaction(object : Transaction.Handler {
@@ -449,7 +460,7 @@ class CardsFragment : RxFragment() {
                                         }
                                     })
                                 } else {
-                                    toast("newLike true")
+//                                    toast("newLike true")
                                     Log.d("KHJ", "newLike true")
                                     Glide.with(this@CardsFragment)
                                         .load(R.drawable.lb_ic_thumb_up)
@@ -493,33 +504,33 @@ class CardsFragment : RxFragment() {
                             }
                         })
                 }
-            }
         }
+    }
 
 
-        fun formatTimeString(regTime: Long): String? {
-            val SEC = 60
-            val MIN = 60
-            val HOUR = 24
-            val DAY = 30
-            val MONTH = 12
-            val curTime = System.currentTimeMillis()
-            var diffTime = (curTime - regTime) / 1000
-            var msg: String? = null
-            if (diffTime < SEC) {
-                msg = "방금 전"
-            } else if (SEC.let { diffTime /= it; diffTime } < MIN) {
-                msg = diffTime.toString() + "분 전"
-            } else if (MIN.let { diffTime /= it; diffTime } < HOUR) {
-                msg = diffTime.toString() + "시간 전"
-            } else if (HOUR.let { diffTime /= it; diffTime } < DAY) {
-                msg = diffTime.toString() + "일 전"
-            } else {
-                val sdf = SimpleDateFormat("yyyy년 MM월 dd일 HH:mm")
-                msg = sdf.format(regTime)
-            }
-            return msg
+    fun formatTimeString(regTime: Long): String? {
+        val SEC = 60
+        val MIN = 60
+        val HOUR = 24
+        val DAY = 30
+        val MONTH = 12
+        val curTime = System.currentTimeMillis()
+        var diffTime = (curTime - regTime) / 1000
+        var msg: String? = null
+        if (diffTime < SEC) {
+            msg = "방금 전"
+        } else if (SEC.let { diffTime /= it; diffTime } < MIN) {
+            msg = diffTime.toString() + "분 전"
+        } else if (MIN.let { diffTime /= it; diffTime } < HOUR) {
+            msg = diffTime.toString() + "시간 전"
+        } else if (HOUR.let { diffTime /= it; diffTime } < DAY) {
+            msg = diffTime.toString() + "일 전"
+        } else {
+            val sdf = SimpleDateFormat("yyyy년 MM월 dd일 HH:mm")
+            msg = sdf.format(regTime)
         }
+        return msg
+    }
 
     @SuppressLint("HardwareIds")
     fun getMyId(): String { // Return Device ID

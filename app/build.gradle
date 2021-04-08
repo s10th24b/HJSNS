@@ -82,6 +82,9 @@ dependencies {
     // Add the dependencies for any other desired Firebase products
     // https://firebase.google.com/docs/android/setup#available-libraries
     implementation 'com.google.firebase:firebase-database:19.7.0'
+    implementation 'com.google.firebase:firebase-auth:20.0.3'
+    implementation 'com.firebaseui:firebase-ui-auth:6.4.0'
+    implementation 'com.google.android.gms:play-services-auth:19.0.0'
 
     implementation 'com.trello.rxlifecycle4:rxlifecycle-kotlin:4.0.2'
     implementation 'com.trello.rxlifecycle4:rxlifecycle-android:4.0.2'
@@ -101,6 +104,7 @@ dependencies {
     implementation 'com.jakewharton.rxbinding4:rxbinding-material:4.0.0'
 
     implementation("com.louiscad.splitties:splitties-fun-pack-android-base:3.0.0-beta01")
+    implementation("com.louiscad.splitties:splitties-snackbar:3.0.0-beta01")
 
 
 

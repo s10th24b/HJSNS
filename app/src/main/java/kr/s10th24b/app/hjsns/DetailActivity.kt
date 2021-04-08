@@ -312,7 +312,7 @@ class DetailActivity : RxAppCompatActivity() {
                 val comm = recyclerViewAdapter.commentList[position]
                 menuComment = comm
                 menuIn = menuComment
-                Toast.makeText(this@DetailActivity,"menuIn is initialized!",Toast.LENGTH_SHORT).show()
+//                Toast.makeText(this@DetailActivity,"menuIn is initialized!",Toast.LENGTH_SHORT).show()
                 val inflater = MenuInflater(this@DetailActivity)
                 inflater.inflate(R.menu.card_floating_menu, menu)
                 //                    menu.setHeaderTitle("메뉴")

@@ -148,7 +148,7 @@ class WriteActivity : RxAppCompatActivity() {
                                                         p.commentCount++
                                                         currentData.value = p
 //                                        Toast.makeText(this@WriteActivity,"카드가 수정되었습니다",Toast.LENGTH_SHORT).show()
-                                                        Log.d("KHJ", "카드가 수정되었습니다")
+                                                        Log.d("KHJ", "댓글이 작성되었습니다")
                                                         return Transaction.success(currentData)
                                                     }
 
@@ -165,7 +165,7 @@ class WriteActivity : RxAppCompatActivity() {
                                                 })
 //                                toast("댓글 작성 성공")
                                             } else {
-                                                toast("카드가 삭제되었습니다")
+                                                toast("카드가 이미 삭제되었습니다")
                                                 Log.d(
                                                     "KHJ",
                                                     "post not exist. abort adding comment."
