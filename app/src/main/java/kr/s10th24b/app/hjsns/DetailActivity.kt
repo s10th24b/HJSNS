@@ -88,6 +88,53 @@ class DetailActivity : RxAppCompatActivity() {
                 true
             }
             R.id.menu_item_remove -> {
+                val dbRef = FirebaseDatabase.getInstance().getReference("")
+                if (menuIn is Post) {
+                    val postPath = "/Posts/${menuCard.postId}"
+                    val commentPath = "/Comments/${menuCard.postId}"
+                    val likePath = "/Likes/${menuCard.postId}"
+                    val childUpdates = hashMapOf<String, Any?>(
+                        postPath to null,
+                        commentPath to null,
+                        likePath to null
+                    )
+                    dbRef.updateChildren(childUpdates)
+                        .addOnSuccessListener(this) { toast("카드 수정 성공") }
+                        .addOnCanceledListener(this) { toast("카드 수정 취소") }
+                        .addOnFailureListener(this) { toast("카드 수정 실패") }
+                    finish()
+                } else if (menuIn is Comment) {
+                    val commentPath = "/Comments/${menuComment.postId}/${menuComment.commentId}"
+                    val childUpdates = hashMapOf<String, Any?>(
+                        commentPath to null,
+                    )
+                    dbRef.updateChildren(childUpdates)
+                        .addOnSuccessListener(this) { toast("댓글 수정 성공") }
+                        .addOnCanceledListener(this) { toast("댓글 수정 취소") }
+                        .addOnFailureListener(this) { toast("댓글 수정 실패") }
+
+                    dbRef.child("/Posts/${menuComment.postId}").runTransaction(object : Transaction.Handler {
+                        override fun doTransaction(currentData: MutableData): Transaction.Result {
+                            val p = currentData.getValue(Post::class.java)
+                                ?: return Transaction.success(currentData)
+
+                            p.commentCount = p.commentCount-1
+                            currentData.value = p
+//                                        Toast.makeText(this@WriteActivity,"카드가 수정되었습니다",Toast.LENGTH_SHORT).show()
+                            Log.d("KHJ","댓글을 수정했습니다")
+                            return Transaction.success(currentData)
+                        }
+
+                        override fun onComplete(
+                            error: DatabaseError?,
+                            committed: Boolean,
+                            currentData: DataSnapshot?
+                        ) {
+                            Log.d("KHJ", "postModifyTransaction:onComplete(), $error")
+                            Log.d("KHJ", "postModifyTransaction:onComplete() committed, $committed")
+                        }
+                    })
+                }
                 true
             }
             R.id.menu_item_report -> {
@@ -151,11 +198,13 @@ class DetailActivity : RxAppCompatActivity() {
                             recyclerViewAdapter.commentList.add(cmm)
                             Log.d("KHJ", "commentList: ${recyclerViewAdapter.commentList}")
                             recyclerViewAdapter.notifyItemInserted(0)
+                            recyclerViewAdapter.notifyDataSetChanged()
                         } else {
                             val prevIndex =
                                 recyclerViewAdapter.commentList.indexOfFirst { it.commentId == previousChildName }
                             recyclerViewAdapter.commentList.add(prevIndex + 1, cmm)
                             recyclerViewAdapter.notifyItemInserted(prevIndex + 1)
+                            recyclerViewAdapter.notifyDataSetChanged()
                             val firstCompVisPos =
                                 layoutManager.findFirstCompletelyVisibleItemPosition()
                             val visibleItemCount = binding.detailRecyclerView.childCount
@@ -182,6 +231,7 @@ class DetailActivity : RxAppCompatActivity() {
                                 recyclerViewAdapter.commentList.indexOfFirst { cmm.commentId == it.commentId }
                             recyclerViewAdapter.commentList[prevIndex] = cmm
                             recyclerViewAdapter.notifyItemChanged(prevIndex)
+                            recyclerViewAdapter.notifyDataSetChanged()
                         }
                     }
                 }
@@ -193,6 +243,7 @@ class DetailActivity : RxAppCompatActivity() {
                             recyclerViewAdapter.commentList.indexOfFirst { cmm.commentId == it.commentId }
                         recyclerViewAdapter.commentList.removeAt(existIndex)
                         recyclerViewAdapter.notifyItemRemoved(existIndex)
+                        recyclerViewAdapter.notifyDataSetChanged()
                     }
                 }
 
@@ -203,11 +254,13 @@ class DetailActivity : RxAppCompatActivity() {
                             recyclerViewAdapter.commentList.indexOfFirst { cmm.commentId == it.commentId }
                         recyclerViewAdapter.commentList.removeAt(existIndex)
                         recyclerViewAdapter.notifyItemRemoved(existIndex)
+                        recyclerViewAdapter.notifyDataSetChanged()
 
                         val prevIndex =
                             recyclerViewAdapter.commentList.indexOfFirst { cmm.commentId == previousChildName }
                         recyclerViewAdapter.commentList.add(prevIndex + 1, cmm)
                         recyclerViewAdapter.notifyItemInserted(prevIndex)
+                        recyclerViewAdapter.notifyDataSetChanged()
                     }
                 }
 
@@ -218,26 +271,6 @@ class DetailActivity : RxAppCompatActivity() {
                 }
             })
 
-    }
-
-    fun removeComment() {
-        // 내가 배운 것.
-        // FirebaseDatabase CRUD Operation 안에는, 또다른 CRUD Operation이 있으면 안된다.
-        // multiple clients 가 존재할 때, duplicated 되기 때문.
-        val postId = ""
-        //// You should write below code in removing function, not viewing activity
-        val postCommentCountRef =
-            FirebaseDatabase.getInstance().getReference("Posts/$postId")
-                .child("commentCount")
-        postCommentCountRef.get().addOnSuccessListener(this@DetailActivity) {
-            postCommentCountRef.setValue(it.value.toString().toInt() - 1)
-        }.addOnCanceledListener(this@DetailActivity) {
-            Log.d(
-                "KHJ",
-                "Error getting data from $postId"
-            )
-        }
-        ///
     }
 
     inner class DetailRecyclerViewAdapter : RecyclerView.Adapter<DetailRecyclerViewHolder>() {
@@ -254,6 +287,7 @@ class DetailActivity : RxAppCompatActivity() {
 
         override fun onBindViewHolder(holder: DetailRecyclerViewHolder, position: Int) {
             val comment = commentList[position]
+            Log.d("KHJ","comment: ${comment.message}, position: $position")
             holder.bind(comment, position)
         }
 

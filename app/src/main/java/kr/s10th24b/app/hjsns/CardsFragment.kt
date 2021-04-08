@@ -15,6 +15,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.database.*
+import com.jakewharton.rxbinding4.view.clicks
 import com.trello.rxlifecycle4.components.support.RxFragment
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Observable
@@ -71,6 +72,19 @@ class CardsFragment : RxFragment() {
                 true
             }
             R.id.menu_item_remove -> {
+                val dbRef = FirebaseDatabase.getInstance().getReference("")
+                val postPath = "/Posts/${menuCard.postId}"
+                val commentPath = "/Comments/${menuCard.postId}"
+                val likePath = "/Likes/${menuCard.postId}"
+                val childUpdates = hashMapOf<String, Any?>(
+                    postPath to null,
+                    commentPath to null,
+                    likePath to null
+                )
+                dbRef.updateChildren(childUpdates)
+                    .addOnSuccessListener(requireActivity()) { toast("카드 삭제 성공") }
+                    .addOnCanceledListener(requireActivity()) { toast("카드 삭제 취소") }
+                    .addOnFailureListener(requireActivity()) { toast("카드 삭제 실패") }
                 true
             }
             R.id.menu_item_report -> {
@@ -314,25 +328,24 @@ class CardsFragment : RxFragment() {
 
 
         fun bind(card: Post, position: Int) {
-            itemView.setOnClickListener { }
             Log.d("KHJ", adapterPosition.toString())
             Glide.with(itemView.context)
                 .load(Uri.parse(card.bgUri))
                 .centerCrop()
                 .into(binding.cardImageView)
             // if user already like this post
-            FirebaseDatabase.getInstance().getReference("Like/${card.postId}")
+            FirebaseDatabase.getInstance().getReference("Likes/${card.postId}")
                 .orderByChild("likerId").equalTo(getMyId())
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         if (snapshot.exists()) {
-                            toast("like already exist")
+//                            toast("like already exist")
                             Log.d("KHJ", "like already exist")
                             Glide.with(itemView.context)
                                 .load(R.drawable.lb_ic_thumb_up)
                                 .into(binding.likeImageView)
                         } else {
-                            toast("like not exist")
+//                            toast("like not exist")
                             Log.d("KHJ", "like not exist")
                             Glide.with(itemView.context)
                                 .load(R.drawable.lb_ic_thumb_up_outline)
@@ -382,82 +395,104 @@ class CardsFragment : RxFragment() {
 
             // override 에서 처리하는 게 아니라, bind 함수 내에서 바로 구현하면서 position 을 이용했다.
 
-            binding.cardImageView.setOnCreateContextMenuListener(object :
-                View.OnCreateContextMenuListener {
-                override fun onCreateContextMenu(
-                    menu: ContextMenu,
-                    v: View?,
-                    menuInfo: ContextMenu.ContextMenuInfo?
-                ) {
-                    val card = recyclerViewAdapter.cardList[position]
-                    menuCard = card
-                    val inflater = MenuInflater(activity)
-                    inflater.inflate(R.menu.card_floating_menu, menu)
-//                    menu.setHeaderTitle("메뉴")
-                    if (card.writerId == getMyId()) {
-                        menu.removeItem(R.id.menu_item_report)
-                    } else {
-                        menu.removeItem(R.id.menu_item_remove)
-                        menu.removeItem(R.id.menu_item_modify)
-                    }
+            binding.cardImageView.setOnCreateContextMenuListener { menu, v, menuInfo ->
+                val card = recyclerViewAdapter.cardList[position]
+                menuCard = card
+                val inflater = MenuInflater(activity)
+                inflater.inflate(R.menu.card_floating_menu, menu)
+                //                    menu.setHeaderTitle("메뉴")
+                if (card.writerId == getMyId()) {
+                    menu.removeItem(R.id.menu_item_report)
+                } else {
+                    menu.removeItem(R.id.menu_item_remove)
+                    menu.removeItem(R.id.menu_item_modify)
                 }
-            })
-            binding.likeImageView.setOnClickListener {
-                val likeRef = FirebaseDatabase.getInstance().getReference("Like/${card.postId}")
-                // a 가 Unit 이다... ValueEventListener 를 반환해야 remove가능한데...
-                likeRef.orderByChild("likerId").equalTo(getMyId())
-                    .addListenerForSingleValueEvent(object : ValueEventListener {
-                        override fun onDataChange(snapshot: DataSnapshot) {
-                            if (snapshot.exists()) {
-                                toast("newLike false")
-                                Log.d("KHJ", "newLike false")
-                                Glide.with(this@CardsFragment)
-                                    .load(R.drawable.lb_ic_thumb_up_outline)
-                                    .into(binding.likeImageView)
-                                likeRef.child(snapshot.getValue(Like::class.java)!!.likeId)
-                                    .removeValue()
-                                val postLikeCountRef = FirebaseDatabase.getInstance()
-                                    .getReference("Posts/${card.postId}")
-                                    .child("likeCount")
-                                postLikeCountRef.get()
-                                    .addOnSuccessListener(this@CardsFragment.requireActivity()) {
-                                        postLikeCountRef.setValue(it.value.toString().toInt() - 1)
-                                    }
-                                    .addOnCanceledListener(this@CardsFragment.requireActivity()) {
-                                        Log.d("KHJ", "Error getting data from ${card.postId}")
-                                    }
-                            } else {
-                                toast("newLike true")
-                                Log.d("KHJ", "newLike true")
-                                Glide.with(this@CardsFragment)
-                                    .load(R.drawable.lb_ic_thumb_up)
-                                    .into(binding.likeImageView)
-                                val newRef = FirebaseDatabase.getInstance()
-                                    .getReference("Like/${card.postId}").push()
-                                val like = Like()
-                                like.likeId = newRef.key.toString()
-                                like.likerId = getMyId()
-                                like.postId = card.postId
-                                like.likeTime = ServerValue.TIMESTAMP
-                                newRef.setValue(like)
-                                val postLikeCountRef = FirebaseDatabase.getInstance()
-                                    .getReference("Posts/${card.postId}")
-                                    .child("likeCount")
-                                postLikeCountRef.get()
-                                    .addOnSuccessListener(this@CardsFragment.requireActivity()) {
-                                        postLikeCountRef.setValue(it.value.toString().toInt() + 1)
-                                    }
-                                    .addOnCanceledListener(this@CardsFragment.requireActivity()) {
-                                        Log.d("KHJ", "Error getting data from ${card.postId}")
-                                    }
-                            }
-                        }
+            }
+            binding.likeImageView.clicks()
+                .observeOn(AndroidSchedulers.mainThread())
+                .debounce(300L,TimeUnit.MILLISECONDS)
+                .subscribe {
+                    val likeRef =
+                        FirebaseDatabase.getInstance().getReference("Likes/${card.postId}")
+                    // a 가 Unit 이다... ValueEventListener 를 반환해야 remove가능한데...
+                    likeRef.orderByChild("likerId").equalTo(getMyId())
+                        .addListenerForSingleValueEvent(object : ValueEventListener {
+                            override fun onDataChange(snapshot: DataSnapshot) {
+                                if (snapshot.exists()) {
+                                    toast("newLike false")
+                                    Log.d("KHJ", "newLike false")
+                                    Glide.with(this@CardsFragment)
+                                        .load(R.drawable.lb_ic_thumb_up_outline)
+                                        .into(binding.likeImageView)
+                                    likeRef.child(snapshot.getValue(Like::class.java)!!.likeId)
+                                        .removeValue()
+                                    val postRef = FirebaseDatabase.getInstance()
+                                        .getReference("Posts/${card.postId}")
+                                    postRef.runTransaction(object : Transaction.Handler {
+                                        override fun doTransaction(currentData: MutableData): Transaction.Result {
+                                            val p = currentData.getValue(Post::class.java)
+                                                ?: return Transaction.success(currentData)
+                                            p.likeCount--
+                                            currentData.value = p
+                                            return Transaction.success(currentData)
+                                        }
 
-                        override fun onCancelled(error: DatabaseError) {
-                            Log.d("KHJ", "onCacelled in likerId")
-                            error("onCacelled in likerId")
-                        }
-                    })
+                                        override fun onComplete(
+                                            error: DatabaseError?,
+                                            committed: Boolean,
+                                            currentData: DataSnapshot?
+                                        ) {
+                                            Log.d(
+                                                "KHJ",
+                                                "postLikeTransaction:onComplete(), $error"
+                                            )
+                                        }
+                                    })
+                                } else {
+                                    toast("newLike true")
+                                    Log.d("KHJ", "newLike true")
+                                    Glide.with(this@CardsFragment)
+                                        .load(R.drawable.lb_ic_thumb_up)
+                                        .into(binding.likeImageView)
+                                    val newRef = FirebaseDatabase.getInstance()
+                                        .getReference("Likes/${card.postId}").push()
+                                    val like = Like()
+                                    like.likeId = newRef.key.toString()
+                                    like.likerId = getMyId()
+                                    like.postId = card.postId
+                                    like.likeTime = ServerValue.TIMESTAMP
+                                    newRef.setValue(like)
+                                    val postRef = FirebaseDatabase.getInstance()
+                                        .getReference("Posts/${card.postId}")
+                                    postRef.runTransaction(object : Transaction.Handler {
+                                        override fun doTransaction(currentData: MutableData): Transaction.Result {
+                                            val p = currentData.getValue(Post::class.java)
+                                                ?: return Transaction.success(currentData)
+                                            p.likeCount++
+                                            currentData.value = p
+                                            return Transaction.success(currentData)
+                                        }
+
+                                        override fun onComplete(
+                                            error: DatabaseError?,
+                                            committed: Boolean,
+                                            currentData: DataSnapshot?
+                                        ) {
+                                            Log.d(
+                                                "KHJ",
+                                                "postLikeTransaction:onComplete(), $error"
+                                            )
+                                        }
+                                    })
+                                }
+                            }
+
+                            override fun onCancelled(error: DatabaseError) {
+                                Log.d("KHJ", "onCacelled in likerId")
+                                error("onCacelled in likerId")
+                            }
+                        })
+                }
             }
         }
 
@@ -485,7 +520,6 @@ class CardsFragment : RxFragment() {
             }
             return msg
         }
-    }
 
     @SuppressLint("HardwareIds")
     fun getMyId(): String { // Return Device ID
