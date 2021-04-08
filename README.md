@@ -23,9 +23,8 @@ This is the Social Network Service Application anyone can post their card with c
 - [ ] Add Realtime Service notice there's new message
 - [ ] Add FCM for new message
 - [X] Automatically Scroll Up at Top of Items (done at 21.04.04)
-- [ ] Add File Uploading System
+- [ ] Add Photo Uploading System in Posting Operation
 - [ ] Add Observer Patterns such as Cards Badge
-- [ ] Make Service Asynchronous with RxJava & Other Rx's 
 - [ ] Save UI State with LifeCycle(Preserve Data When Screen Rotates, Listener Restoration)
 
 ----------------
