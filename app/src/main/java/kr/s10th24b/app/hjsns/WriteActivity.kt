@@ -112,8 +112,7 @@ class WriteActivity : RxAppCompatActivity() {
                             "comment" -> {
                                 // 댓글 작성하는 사이에 글이 없어졌는지 판별해야함.
                                 FirebaseDatabase.getInstance().getReference("Posts")
-                                    .orderByChild("postId")
-                                    .equalTo(intentPostId)
+                                    .orderByChild("postId") .equalTo(intentPostId)
                                     .addListenerForSingleValueEvent(object : ValueEventListener {
                                         override fun onDataChange(snapshot: DataSnapshot) {
                                             if (snapshot.exists()) {
