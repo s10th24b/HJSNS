@@ -2,7 +2,6 @@ package kr.s10th24b.app.hjsns
 
 import android.annotation.SuppressLint
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
@@ -16,10 +15,10 @@ import com.bumptech.glide.Glide
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.database.*
 import com.jakewharton.rxbinding4.view.clicks
-import com.squareup.haha.perflib.Snapshot
+import com.trello.rxlifecycle4.android.ActivityEvent
 import com.trello.rxlifecycle4.components.support.RxAppCompatActivity
+import com.trello.rxlifecycle4.kotlin.bindUntilEvent
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
-import io.reactivex.rxjava3.disposables.CompositeDisposable
 import kr.s10th24b.app.hjsns.databinding.ActivityWriteBinding
 import kr.s10th24b.app.hjsns.databinding.CardBackgroundBinding
 import splitties.toast.toast
@@ -85,7 +84,7 @@ class WriteActivity : RxAppCompatActivity() {
 
         binding.writeShareButton.clicks()
             .debounce(200L, TimeUnit.MILLISECONDS)
-            .compose(this.bindToLifecycle())
+            .bindUntilEvent(this,ActivityEvent.DESTROY)
             .observeOn(AndroidSchedulers.mainThread())
             .subscribe({
                 if (binding.writeEditText.text.isNotBlank()) {

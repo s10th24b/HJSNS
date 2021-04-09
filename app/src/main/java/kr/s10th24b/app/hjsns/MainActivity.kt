@@ -73,7 +73,6 @@ class MainActivity : RxAppCompatActivity() {
 
     override fun onDestroy() {
         if (isFinishing) {
-            Log.d("KHJ", "mCompositeDisposable disposed!")
         } else {
 
         }
@@ -86,6 +85,4 @@ class MainActivity : RxAppCompatActivity() {
             .replace(R.id.mainFrame, fragment)
             .commit()
     }
-
 }
-

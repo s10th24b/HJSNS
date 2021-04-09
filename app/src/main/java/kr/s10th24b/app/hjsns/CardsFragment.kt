@@ -372,7 +372,7 @@ class CardsFragment : RxFragment() {
             // 헌데, 특정 포스트가 삭제되면, 그와 관련된 Interval Observable도 dispose 해줘야 하는데...
             // 그건 구현을 어떻게 하지? 그 Observable reference 를 어떻게 구하지?
             // 이렇게 있으면 또 recyclerView에서 holder가 없어져도 Observable을 갖고있어서 GC되지 않을텐데..
-            // # Solved with compose() -> Wow!!! RxLifeCycle is Amazing!!
+            // # Solved with bindUntilEvent() -> Wow!!! RxLifeCycle is Amazing!!
             binding.timeTextView.text = formatTimeString(card.writeTime as Long)
             Observable.interval(60L, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
