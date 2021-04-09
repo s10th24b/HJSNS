@@ -1,9 +1,9 @@
 # HJ SNS
+![](.README_images/app_logo.png)
 HJ's Social Network Service :couplekiss:
 
 ## What is this?
 This is the Social Network Service Application anyone can post their card with comment on. 
-![](.README_images/app_logo.png)
 
 ## How it works
 ![](.README_images/c770f767.png)
@@ -26,6 +26,7 @@ This is the Social Network Service Application anyone can post their card with c
 - [ ] Add Administrator Account which can remove and modify all cards
 - [ ] Add Realtime Service notice there's new message
 - [ ] Add FCM for new message
+- [ ] Add Report-to-Developer System
 - [X] Automatically Scroll Up at Top of Items (done at 21.04.04)
 - [ ] Add Photo Uploading System in Posting Operation
 - [ ] Add Observer Patterns such as Cards Badge

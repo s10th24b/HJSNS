@@ -3,22 +3,18 @@ package kr.s10th24b.app.hjsns
 import android.annotation.SuppressLint
 import android.content.Intent
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.Settings
-import android.renderscript.Sampler
 import android.util.Log
 import android.view.*
-import android.widget.AdapterView
-import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.database.*
 import com.jakewharton.rxbinding4.view.clicks
 import com.trello.rxlifecycle4.android.ActivityEvent
-import com.trello.rxlifecycle4.android.FragmentEvent
 import com.trello.rxlifecycle4.components.support.RxAppCompatActivity
+import com.trello.rxlifecycle4.components.support.RxDialogFragment
 import com.trello.rxlifecycle4.kotlin.bindUntilEvent
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import kr.s10th24b.app.hjsns.databinding.ActivityDetailBinding
@@ -28,15 +24,15 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class DetailActivity : RxAppCompatActivity() {
+class DetailActivity : RxAppCompatActivity(), MyAlertDialogFragment.MyAlertDialogListener {
     lateinit var binding: ActivityDetailBinding
     lateinit var layoutManager: LinearLayoutManager
     var recyclerViewAdapter = DetailRecyclerViewAdapter()
-    var alreadyCreated = false
+    private var alreadyCreated = false
     private var intentPostId = ""
-    lateinit var postValueEventListener: ValueEventListener
-    lateinit var commentChildEventListener: ChildEventListener
-    lateinit var menuCard: Post
+    private lateinit var postValueEventListener: ValueEventListener
+    private lateinit var commentChildEventListener: ChildEventListener
+    private lateinit var menuCard: Post
     lateinit var menuComment: Comment
     lateinit var menuIn: Any
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -194,6 +190,66 @@ class DetailActivity : RxAppCompatActivity() {
             }
     }
 
+    override fun onPositiveClick(dialog: RxDialogFragment): Boolean {
+        val dbRef = FirebaseDatabase.getInstance().getReference("")
+        if (menuIn is Post) {
+            val postPath = "/Posts/${menuCard.postId}"
+            val commentPath = "/Comments/${menuCard.postId}"
+            val likePath = "/Likes/${menuCard.postId}"
+            val childUpdates = hashMapOf<String, Any?>(
+                postPath to null,
+                commentPath to null,
+                likePath to null
+            )
+            dbRef.updateChildren(childUpdates)
+                .addOnSuccessListener(this) { toast("카드 삭제 성공") }
+                .addOnCanceledListener(this) { toast("카드 삭제 취소") }
+                .addOnFailureListener(this) { toast("카드 삭제 실패") }
+            finish()
+        } else if (menuIn is Comment) {
+            val commentPath = "/Comments/${menuComment.postId}/${menuComment.commentId}"
+            val childUpdates = hashMapOf<String, Any?>(
+                commentPath to null,
+            )
+            dbRef.updateChildren(childUpdates)
+                .addOnSuccessListener(this) { toast("댓글 삭제 성공") }
+                .addOnCanceledListener(this) { toast("댓글 삭제 취소") }
+                .addOnFailureListener(this) { toast("댓글 삭제 실패") }
+
+            dbRef.child("/Posts/${menuComment.postId}")
+                .runTransaction(object : Transaction.Handler {
+                    override fun doTransaction(currentData: MutableData): Transaction.Result {
+                        val p = currentData.getValue(Post::class.java)
+                            ?: return Transaction.success(currentData)
+
+                        p.commentCount = p.commentCount - 1
+                        currentData.value = p
+//                                        Toast.makeText(this@WriteActivity,"카드가 수정되었습니다",Toast.LENGTH_SHORT).show()
+                        Log.d("KHJ", "댓글을 수정했습니다")
+                        return Transaction.success(currentData)
+                    }
+
+                    override fun onComplete(
+                        error: DatabaseError?,
+                        committed: Boolean,
+                        currentData: DataSnapshot?
+                    ) {
+                        Log.d("KHJ", "postModifyTransaction:onComplete(), $error")
+                        Log.d(
+                            "KHJ",
+                            "postModifyTransaction:onComplete() committed, $committed"
+                        )
+                    }
+                })
+        }
+        return true
+    }
+
+    override fun onNegativeClick(dialog: RxDialogFragment): Boolean {
+        // do nothing
+        return false
+    }
+
     override fun onContextItemSelected(item: MenuItem): Boolean {
 //        val info = item.menuInfo as AdapterView.AdapterContextMenuInfo
         return when (item.itemId) {
@@ -210,57 +266,8 @@ class DetailActivity : RxAppCompatActivity() {
                 true
             }
             R.id.menu_item_remove -> {
-                val dbRef = FirebaseDatabase.getInstance().getReference("")
-                if (menuIn is Post) {
-                    val postPath = "/Posts/${menuCard.postId}"
-                    val commentPath = "/Comments/${menuCard.postId}"
-                    val likePath = "/Likes/${menuCard.postId}"
-                    val childUpdates = hashMapOf<String, Any?>(
-                        postPath to null,
-                        commentPath to null,
-                        likePath to null
-                    )
-                    dbRef.updateChildren(childUpdates)
-                        .addOnSuccessListener(this) { toast("카드 삭제 성공") }
-                        .addOnCanceledListener(this) { toast("카드 삭제 취소") }
-                        .addOnFailureListener(this) { toast("카드 삭제 실패") }
-                    finish()
-                } else if (menuIn is Comment) {
-                    val commentPath = "/Comments/${menuComment.postId}/${menuComment.commentId}"
-                    val childUpdates = hashMapOf<String, Any?>(
-                        commentPath to null,
-                    )
-                    dbRef.updateChildren(childUpdates)
-                        .addOnSuccessListener(this) { toast("댓글 삭제 성공") }
-                        .addOnCanceledListener(this) { toast("댓글 삭제 취소") }
-                        .addOnFailureListener(this) { toast("댓글 삭제 실패") }
-
-                    dbRef.child("/Posts/${menuComment.postId}")
-                        .runTransaction(object : Transaction.Handler {
-                            override fun doTransaction(currentData: MutableData): Transaction.Result {
-                                val p = currentData.getValue(Post::class.java)
-                                    ?: return Transaction.success(currentData)
-
-                                p.commentCount = p.commentCount - 1
-                                currentData.value = p
-//                                        Toast.makeText(this@WriteActivity,"카드가 수정되었습니다",Toast.LENGTH_SHORT).show()
-                                Log.d("KHJ", "댓글을 수정했습니다")
-                                return Transaction.success(currentData)
-                            }
-
-                            override fun onComplete(
-                                error: DatabaseError?,
-                                committed: Boolean,
-                                currentData: DataSnapshot?
-                            ) {
-                                Log.d("KHJ", "postModifyTransaction:onComplete(), $error")
-                                Log.d(
-                                    "KHJ",
-                                    "postModifyTransaction:onComplete() committed, $committed"
-                                )
-                            }
-                        })
-                }
+                val removeAlertDialog = MyAlertDialogFragment("Activity","정말 카드를 삭제하시겠습니까?")
+                removeAlertDialog.show(supportFragmentManager, "Item Removing")
                 true
             }
             R.id.menu_item_report -> {
@@ -283,7 +290,7 @@ class DetailActivity : RxAppCompatActivity() {
         alreadyCreated = true
     }
 
-    fun setFirebaseDatabasePostListener(postId: String) {
+    private fun setFirebaseDatabasePostListener(postId: String) {
         Log.d("KHJ", "setFirebaseDatabasePostListener")
         postValueEventListener = FirebaseDatabase.getInstance().getReference("/Posts/$postId")
             .addValueEventListener(object : ValueEventListener {
@@ -313,7 +320,7 @@ class DetailActivity : RxAppCompatActivity() {
         super.onDestroy()
     }
 
-    fun setFirebaseDatabaseCommentListener(postId: String) {
+    private fun setFirebaseDatabaseCommentListener(postId: String) {
         commentChildEventListener = FirebaseDatabase.getInstance().getReference("/Comments/$postId")
             .addChildEventListener(object : ChildEventListener {
                 override fun onChildAdded(snapshot: DataSnapshot, previousChildName: String?) {

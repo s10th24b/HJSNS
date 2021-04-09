@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.fragment.app.FragmentManager
 import com.bumptech.glide.Glide
 import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
@@ -18,6 +19,7 @@ import com.google.firebase.auth.UserInfo
 import com.google.firebase.ktx.Firebase
 import com.jakewharton.rxbinding4.view.clicks
 import com.trello.rxlifecycle4.android.FragmentEvent
+import com.trello.rxlifecycle4.components.support.RxDialogFragment
 import com.trello.rxlifecycle4.components.support.RxFragment
 import com.trello.rxlifecycle4.kotlin.bindUntilEvent
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
@@ -26,8 +28,9 @@ import splitties.toast.toast
 import splitties.snackbar.snack
 import splitties.systemservices.appWidgetManager
 import java.util.concurrent.TimeUnit
+import kotlin.math.log
 
-class ProfileFragment : RxFragment() {
+class ProfileFragment : RxFragment(), MyAlertDialogFragment.MyAlertDialogListener {
     lateinit var binding: FragmentProfileBinding
     lateinit var mUser: FirebaseUser
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -35,6 +38,7 @@ class ProfileFragment : RxFragment() {
         arguments?.let {
         }
     }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -131,24 +135,38 @@ class ProfileFragment : RxFragment() {
             .debounce(200L, TimeUnit.MILLISECONDS)
             .bindUntilEvent(this, FragmentEvent.DESTROY_VIEW)
             .subscribe {
-//                FirebaseAuth.getInstance().signOut()
-                AuthUI.getInstance().signOut(requireContext())
-                    .addOnCompleteListener { task ->
-                        if (task.isSuccessful) {
-//                            Snackbar.make(requireView(),"Successfully Signed-Out",Snackbar.LENGTH_SHORT).show()
-                            toast("Successfully Signed-Out")
-//                            requireActivity().finish()
-                            startLoginActivity()
-                        } else {
-                            Snackbar.make(
-                                requireView(),
-                                "Error Occurred in Signing-out",
-                                Snackbar.LENGTH_SHORT
-                            ).show()
-                        }
-                    }
+                val logoutDialog = MyAlertDialogFragment("Fragment","로그아웃하시겠습니까?")
+                logoutDialog.show(childFragmentManager, "LogoutDialog")
+//                logoutDialog.show(parentFragmentManager, "LogoutDialog")
+
             }
     }
+
+    override fun onPositiveClick(dialog: RxDialogFragment): Boolean {
+//        FirebaseAuth.getInstance().signOut()
+        AuthUI.getInstance().signOut(requireContext())
+            .addOnCompleteListener { task ->
+                if (task.isSuccessful) {
+//                            Snackbar.make(requireView(),"Successfully Signed-Out",Snackbar.LENGTH_SHORT).show()
+                    toast("Successfully Signed-Out")
+//                            requireActivity().finish()
+                    startLoginActivity()
+                } else {
+                    Snackbar.make(
+                        requireView(),
+                        "Error Occurred in Signing-out",
+                        Snackbar.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        return true
+    }
+
+    override fun onNegativeClick(dialog: RxDialogFragment): Boolean {
+        // do nothing
+        return false
+    }
+
     fun startLoginActivity() {
         val intent = Intent(requireContext().applicationContext, LoginActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK

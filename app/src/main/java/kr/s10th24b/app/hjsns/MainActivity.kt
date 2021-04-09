@@ -20,6 +20,7 @@ import com.google.firebase.database.ValueEventListener
 import com.squareup.haha.perflib.Main
 import com.squareup.leakcanary.LeakCanary
 import com.trello.rxlifecycle4.components.support.RxAppCompatActivity
+import com.trello.rxlifecycle4.components.support.RxDialogFragment
 import io.reactivex.rxjava3.disposables.CompositeDisposable
 import io.reactivex.rxjava3.subjects.PublishSubject
 import kr.s10th24b.app.hjsns.databinding.ActivityMainBinding
@@ -27,11 +28,21 @@ import splitties.intents.receiverSpec
 import splitties.toast.toast
 import java.util.concurrent.TimeUnit
 
-class MainActivity : RxAppCompatActivity() {
+class MainActivity : RxAppCompatActivity()//,MyAlertDialogFragment.MyAlertDialogListener
+{
     lateinit var binding: ActivityMainBinding
     companion object {
         const val RC_SIGN_IN = 0
     }
+
+//    override fun onPositiveClick(dialog: RxDialogFragment) {
+//        toast("pos in main")
+//
+//    }
+//
+//    override fun onNegativeClick(dialog: RxDialogFragment) {
+//        toast("neg in main")
+//    }
 
     private val cardsFragment by lazy { CardsFragment() }
     private val profileFragment by lazy { ProfileFragment() }

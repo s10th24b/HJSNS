@@ -19,6 +19,7 @@ import com.google.firebase.database.*
 import com.jakewharton.rxbinding4.view.clicks
 import com.trello.rxlifecycle4.android.ActivityEvent
 import com.trello.rxlifecycle4.android.FragmentEvent
+import com.trello.rxlifecycle4.components.support.RxDialogFragment
 import com.trello.rxlifecycle4.components.support.RxFragment
 import com.trello.rxlifecycle4.kotlin.bindToLifecycle
 import com.trello.rxlifecycle4.kotlin.bindUntilEvent
@@ -33,7 +34,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-class CardsFragment : RxFragment() {
+class CardsFragment : RxFragment(), MyAlertDialogFragment.MyAlertDialogListener {
     lateinit var binding: FragmentCardsBinding
     lateinit var recyclerViewAdapter: CardRecyclerViewAdapter
     lateinit var layoutManager: LinearLayoutManager
@@ -74,19 +75,8 @@ class CardsFragment : RxFragment() {
                 true
             }
             R.id.menu_item_remove -> {
-                val dbRef = FirebaseDatabase.getInstance().getReference("")
-                val postPath = "/Posts/${menuCard.postId}"
-                val commentPath = "/Comments/${menuCard.postId}"
-                val likePath = "/Likes/${menuCard.postId}"
-                val childUpdates = hashMapOf<String, Any?>(
-                    postPath to null,
-                    commentPath to null,
-                    likePath to null
-                )
-                dbRef.updateChildren(childUpdates)
-                    .addOnSuccessListener(requireActivity()) { toast("카드 삭제 성공") }
-                    .addOnCanceledListener(requireActivity()) { toast("카드 삭제 취소") }
-                    .addOnFailureListener(requireActivity()) { toast("카드 삭제 실패") }
+                val removeAlertDialog = MyAlertDialogFragment("Fragment","정말 카드를 삭제하시겠습니까?")
+                removeAlertDialog.show(childFragmentManager, "Item Removing")
                 true
             }
             R.id.menu_item_report -> {
@@ -98,11 +88,32 @@ class CardsFragment : RxFragment() {
         }
     }
 
+    override fun onPositiveClick(dialog: RxDialogFragment): Boolean {
+        val dbRef = FirebaseDatabase.getInstance().getReference("")
+        val postPath = "/Posts/${menuCard.postId}"
+        val commentPath = "/Comments/${menuCard.postId}"
+        val likePath = "/Likes/${menuCard.postId}"
+        val childUpdates = hashMapOf<String, Any?>(
+            postPath to null,
+            commentPath to null,
+            likePath to null
+        )
+        dbRef.updateChildren(childUpdates)
+            .addOnSuccessListener(requireActivity()) { toast("카드 삭제 성공") }
+            .addOnCanceledListener(requireActivity()) { toast("카드 삭제 취소") }
+            .addOnFailureListener(requireActivity()) { toast("카드 삭제 실패") }
+        return true
+    }
+
+    override fun onNegativeClick(dialog: RxDialogFragment): Boolean {
+        return false
+    }
+
     private fun setClickCardSubject() {
 //        toast("setClickCardSubject!")
         clickCardSubject
             .observeOn(AndroidSchedulers.mainThread())
-            .bindUntilEvent(this,FragmentEvent.DESTROY)
+            .bindUntilEvent(this, FragmentEvent.DESTROY)
             .subscribe {
                 val intent = Intent(context, DetailActivity::class.java)
                 intent.putExtra("post", it)
@@ -376,7 +387,7 @@ class CardsFragment : RxFragment() {
             binding.timeTextView.text = formatTimeString(card.writeTime as Long)
             Observable.interval(60L, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
-                .bindUntilEvent(this@CardsFragment,FragmentEvent.DESTROY)
+                .bindUntilEvent(this@CardsFragment, FragmentEvent.DESTROY)
                 .subscribe {
                     binding.timeTextView.text = formatTimeString(card.writeTime as Long)
                 }
@@ -418,7 +429,7 @@ class CardsFragment : RxFragment() {
             }
             binding.likeImageView.clicks()
                 .observeOn(AndroidSchedulers.mainThread())
-                .bindUntilEvent(this@CardsFragment,FragmentEvent.DESTROY)
+                .bindUntilEvent(this@CardsFragment, FragmentEvent.DESTROY)
                 .debounce(300L, TimeUnit.MILLISECONDS)
                 .subscribe {
                     val likeRef =
