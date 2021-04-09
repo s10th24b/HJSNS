@@ -18,6 +18,7 @@ This is the Social Network Service Application anyone can post their card with c
 - [X] Add FloatingContextMenu to Implement Remove Operation in Post&Comment (done at 21.04.08)
 - [X] Introduce FireBase Authentication (done at 21.04.08)
 - [ ] Apply AuthInfo to Profile Information
+- [ ] Show Cards, Comments, and Likes of User in Profile Fragment
 - [ ] Add Administrator Account which can remove and modify all cards
 - [ ]  ~Add SharedPreference for Profile Info (you shouldn't do this!)~
 - [ ] Add Realtime Service notice there's new message

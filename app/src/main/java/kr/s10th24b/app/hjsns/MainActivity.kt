@@ -6,6 +6,7 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.util.TimeUtils
+import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.RecyclerView
@@ -57,6 +58,7 @@ class MainActivity : RxAppCompatActivity() {
 //                    badge.isVisible = false
 //                    badge.isVisible = true
 //                    badge.number = 99
+                    binding.mainFloatingActionButton.visibility = View.VISIBLE
                     changeFragment(cardsFragment)
                     mCompositeDisposable.add(cardsFragment.mCompositeDisposable)
                     true
@@ -65,6 +67,7 @@ class MainActivity : RxAppCompatActivity() {
 //                    var badge = binding.mainBottomNavigationView.getOrCreateBadge(item.itemId)
 //                    badge.isVisible = false
 //                    changeFragment(profileFragment)
+                    binding.mainFloatingActionButton.visibility = View.GONE
                     changeFragment(profileFragment)
                     mCompositeDisposable.add(cardsFragment.mCompositeDisposable)
                     true

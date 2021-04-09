@@ -99,9 +99,9 @@ class DetailActivity : RxAppCompatActivity() {
                         likePath to null
                     )
                     dbRef.updateChildren(childUpdates)
-                        .addOnSuccessListener(this) { toast("카드 수정 성공") }
-                        .addOnCanceledListener(this) { toast("카드 수정 취소") }
-                        .addOnFailureListener(this) { toast("카드 수정 실패") }
+                        .addOnSuccessListener(this) { toast("카드 삭제 성공") }
+                        .addOnCanceledListener(this) { toast("카드 삭제 취소") }
+                        .addOnFailureListener(this) { toast("카드 삭제 실패") }
                     finish()
                 } else if (menuIn is Comment) {
                     val commentPath = "/Comments/${menuComment.postId}/${menuComment.commentId}"
@@ -109,9 +109,9 @@ class DetailActivity : RxAppCompatActivity() {
                         commentPath to null,
                     )
                     dbRef.updateChildren(childUpdates)
-                        .addOnSuccessListener(this) { toast("댓글 수정 성공") }
-                        .addOnCanceledListener(this) { toast("댓글 수정 취소") }
-                        .addOnFailureListener(this) { toast("댓글 수정 실패") }
+                        .addOnSuccessListener(this) { toast("댓글 삭제 성공") }
+                        .addOnCanceledListener(this) { toast("댓글 삭제 취소") }
+                        .addOnFailureListener(this) { toast("댓글 삭제 실패") }
 
                     dbRef.child("/Posts/${menuComment.postId}").runTransaction(object : Transaction.Handler {
                         override fun doTransaction(currentData: MutableData): Transaction.Result {
