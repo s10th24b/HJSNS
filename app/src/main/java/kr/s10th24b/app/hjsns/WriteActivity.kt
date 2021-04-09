@@ -28,8 +28,6 @@ import java.util.concurrent.TimeUnit
 class WriteActivity : RxAppCompatActivity() {
     lateinit var binding: ActivityWriteBinding
     var intentPostId = ""
-    var intentCommentId = ""
-    var mCompositeDisposable = CompositeDisposable()
     var currentBgPosition = 0
     val bgList = mutableListOf(
         "android.resource://kr.s10th24b.app.hjsns/drawable/default_bg",
@@ -290,7 +288,6 @@ class WriteActivity : RxAppCompatActivity() {
     }
 
     override fun onDestroy() {
-        mCompositeDisposable.dispose()
         super.onDestroy()
     }
 

@@ -9,6 +9,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.view.*
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -16,7 +17,11 @@ import com.bumptech.glide.Glide
 import com.google.android.gms.tasks.OnSuccessListener
 import com.google.firebase.database.*
 import com.jakewharton.rxbinding4.view.clicks
+import com.trello.rxlifecycle4.android.ActivityEvent
+import com.trello.rxlifecycle4.android.FragmentEvent
 import com.trello.rxlifecycle4.components.support.RxFragment
+import com.trello.rxlifecycle4.kotlin.bindToLifecycle
+import com.trello.rxlifecycle4.kotlin.bindUntilEvent
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
@@ -34,8 +39,6 @@ class CardsFragment : RxFragment() {
     lateinit var layoutManager: LinearLayoutManager
     lateinit var postLikeListener: OnSuccessListener<Activity>
     var clickCardSubject = PublishSubject.create<Post>()
-    lateinit var postValueEventListener: ValueEventListener
-    lateinit var commentChildEventListener: ChildEventListener
     lateinit var menuCard: Post
 
     //    lateinit var mState: Bundle
@@ -99,7 +102,7 @@ class CardsFragment : RxFragment() {
 //        toast("setClickCardSubject!")
         clickCardSubject
             .observeOn(AndroidSchedulers.mainThread())
-            .compose(this.bindToLifecycle())
+            .bindUntilEvent(this,FragmentEvent.DESTROY)
             .subscribe {
                 val intent = Intent(context, DetailActivity::class.java)
                 intent.putExtra("post", it)
@@ -320,6 +323,7 @@ class CardsFragment : RxFragment() {
         }
 
         override fun onBindViewHolder(holder: CardRecyclerViewHolder, position: Int) {
+            Log.d("KHJ","onBindViewHolder called!")
             val card = cardList[position]
             holder.bind(card, position)
         }
@@ -368,11 +372,11 @@ class CardsFragment : RxFragment() {
             // 헌데, 특정 포스트가 삭제되면, 그와 관련된 Interval Observable도 dispose 해줘야 하는데...
             // 그건 구현을 어떻게 하지? 그 Observable reference 를 어떻게 구하지?
             // 이렇게 있으면 또 recyclerView에서 holder가 없어져도 Observable을 갖고있어서 GC되지 않을텐데..
-            // # Solved -> Wow!!! RxLifeCycle is Amazing!!
+            // # Solved with compose() -> Wow!!! RxLifeCycle is Amazing!!
             binding.timeTextView.text = formatTimeString(card.writeTime as Long)
             Observable.interval(60L, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
-                .compose(this@CardsFragment.bindToLifecycle())
+                .bindUntilEvent(this@CardsFragment,FragmentEvent.DESTROY)
                 .subscribe {
                     binding.timeTextView.text = formatTimeString(card.writeTime as Long)
                 }
@@ -414,6 +418,7 @@ class CardsFragment : RxFragment() {
             }
             binding.likeImageView.clicks()
                 .observeOn(AndroidSchedulers.mainThread())
+                .bindUntilEvent(this@CardsFragment,FragmentEvent.DESTROY)
                 .debounce(300L, TimeUnit.MILLISECONDS)
                 .subscribe {
                     val likeRef =

@@ -70,6 +70,31 @@ class DetailActivity : RxAppCompatActivity() {
                 menu.removeItem(R.id.menu_item_modify)
             }
         }
+
+        FirebaseDatabase.getInstance().getReference("Likes/$intentPostId")
+            .orderByChild("likerId").equalTo(getMyId())
+            .addListenerForSingleValueEvent(object : ValueEventListener {
+                override fun onDataChange(snapshot: DataSnapshot) {
+                    if (snapshot.exists()) {
+//                            toast("like already exist")
+                        Log.d("KHJ", "like already exist")
+                        Glide.with(this@DetailActivity)
+                            .load(R.drawable.lb_ic_thumb_up)
+                            .into(binding.detailLikeFloatingButton)
+                    } else {
+//                            toast("like not exist")
+                        Log.d("KHJ", "like not exist")
+                        Glide.with(this@DetailActivity)
+                            .load(R.drawable.lb_ic_thumb_up_outline)
+                            .into(binding.detailLikeFloatingButton)
+                    }
+                }
+
+                override fun onCancelled(error: DatabaseError) {
+                    Log.d("KHJ", "onCacelled in likerId")
+                    error("onCacelled in likerId")
+                }
+            })
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {

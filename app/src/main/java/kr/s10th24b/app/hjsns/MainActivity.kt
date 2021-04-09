@@ -33,7 +33,6 @@ class MainActivity : RxAppCompatActivity() {
         const val RC_SIGN_IN = 0
     }
 
-    private val mCompositeDisposable = CompositeDisposable()
     private val cardsFragment by lazy { CardsFragment() }
     private val profileFragment by lazy { ProfileFragment() }
 
@@ -41,8 +40,6 @@ class MainActivity : RxAppCompatActivity() {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-
 
         binding.mainFloatingActionButton.setOnClickListener {
             val intent = Intent(this, WriteActivity::class.java)
@@ -76,7 +73,6 @@ class MainActivity : RxAppCompatActivity() {
 
     override fun onDestroy() {
         if (isFinishing) {
-            mCompositeDisposable.dispose()
             Log.d("KHJ", "mCompositeDisposable disposed!")
         } else {
 
