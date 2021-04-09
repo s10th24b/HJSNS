@@ -15,12 +15,18 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.google.firebase.database.*
+import com.jakewharton.rxbinding4.view.clicks
+import com.trello.rxlifecycle4.android.ActivityEvent
+import com.trello.rxlifecycle4.android.FragmentEvent
 import com.trello.rxlifecycle4.components.support.RxAppCompatActivity
+import com.trello.rxlifecycle4.kotlin.bindUntilEvent
+import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import kr.s10th24b.app.hjsns.databinding.ActivityDetailBinding
 import kr.s10th24b.app.hjsns.databinding.CardCommentBinding
 import splitties.toast.toast
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 class DetailActivity : RxAppCompatActivity() {
     lateinit var binding: ActivityDetailBinding
@@ -95,6 +101,99 @@ class DetailActivity : RxAppCompatActivity() {
                     error("onCacelled in likerId")
                 }
             })
+        binding.detailLikeFloatingButton.clicks()
+            .observeOn(AndroidSchedulers.mainThread())
+            .bindUntilEvent(this, ActivityEvent.DESTROY)
+            .debounce(300L, TimeUnit.MILLISECONDS)
+            .subscribe {
+                val likeRef =
+                    FirebaseDatabase.getInstance().getReference("Likes/$intentPostId")
+                likeRef.orderByChild("likerId").equalTo(getMyId())
+                    .addListenerForSingleValueEvent(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            Log.d("KHJ", "onDataChange in likeClick")
+                            if (snapshot.exists()) {
+//                                    toast("newLike false")
+                                Log.d("KHJ", "newLike false")
+                                Glide.with(this@DetailActivity)
+                                    .load(R.drawable.lb_ic_thumb_up_outline)
+                                    .into(binding.detailLikeFloatingButton)
+                                for (ch in snapshot.children) {
+                                    if (ch.child("likerId").value == getMyId()) {
+                                        val removeLikeRef =
+                                            likeRef.child(ch.getValue(Like::class.java)!!.likeId)
+                                        removeLikeRef.removeValue()
+                                    }
+                                }
+                                val postRef = FirebaseDatabase.getInstance()
+                                    .getReference("Posts/$intentPostId")
+                                postRef.runTransaction(object : Transaction.Handler {
+                                    override fun doTransaction(currentData: MutableData): Transaction.Result {
+                                        val p = currentData.getValue(Post::class.java)
+                                            ?: return Transaction.success(currentData)
+                                        p.likeCount--
+                                        currentData.value = p
+                                        return Transaction.success(currentData)
+                                    }
+
+                                    override fun onComplete(
+                                        error: DatabaseError?,
+                                        committed: Boolean,
+                                        currentData: DataSnapshot?
+                                    ) {
+                                        Log.d(
+                                            "KHJ",
+                                            "postLikeTransaction:onComplete(), $error"
+                                        )
+                                    }
+                                })
+                            } else {
+//                                    toast("newLike true")
+                                Log.d("KHJ", "newLike true")
+                                Glide.with(this@DetailActivity)
+                                    .load(R.drawable.lb_ic_thumb_up)
+                                    .into(binding.detailLikeFloatingButton)
+                                val newRef = FirebaseDatabase.getInstance()
+                                    .getReference("Likes/$intentPostId").push()
+                                val like = Like()
+                                like.likeId = newRef.key.toString()
+                                like.likerId = getMyId()
+                                like.postId = intentPostId
+                                like.likeTime = ServerValue.TIMESTAMP
+                                newRef.setValue(like)
+                                val postRef = FirebaseDatabase.getInstance()
+                                    .getReference("Posts/$intentPostId")
+                                postRef.runTransaction(object : Transaction.Handler {
+                                    override fun doTransaction(currentData: MutableData): Transaction.Result {
+                                        val p = currentData.getValue(Post::class.java)
+                                            ?: return Transaction.success(currentData)
+                                        p.likeCount++
+                                        currentData.value = p
+                                        return Transaction.success(currentData)
+                                    }
+
+                                    override fun onComplete(
+                                        error: DatabaseError?,
+                                        committed: Boolean,
+                                        currentData: DataSnapshot?
+                                    ) {
+                                        Log.d(
+                                            "KHJ",
+                                            "postLikeTransaction:onComplete(), $error"
+                                        )
+                                    }
+                                })
+                            }
+                        }
+
+                        override fun onCancelled(error: DatabaseError) {
+                            Log.d("KHJ", "onCacelled in likerId")
+                            error("onCacelled in likerId")
+                        }
+                    })
+            }
+
+
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {
@@ -138,27 +237,31 @@ class DetailActivity : RxAppCompatActivity() {
                         .addOnCanceledListener(this) { toast("댓글 삭제 취소") }
                         .addOnFailureListener(this) { toast("댓글 삭제 실패") }
 
-                    dbRef.child("/Posts/${menuComment.postId}").runTransaction(object : Transaction.Handler {
-                        override fun doTransaction(currentData: MutableData): Transaction.Result {
-                            val p = currentData.getValue(Post::class.java)
-                                ?: return Transaction.success(currentData)
+                    dbRef.child("/Posts/${menuComment.postId}")
+                        .runTransaction(object : Transaction.Handler {
+                            override fun doTransaction(currentData: MutableData): Transaction.Result {
+                                val p = currentData.getValue(Post::class.java)
+                                    ?: return Transaction.success(currentData)
 
-                            p.commentCount = p.commentCount-1
-                            currentData.value = p
+                                p.commentCount = p.commentCount - 1
+                                currentData.value = p
 //                                        Toast.makeText(this@WriteActivity,"카드가 수정되었습니다",Toast.LENGTH_SHORT).show()
-                            Log.d("KHJ","댓글을 수정했습니다")
-                            return Transaction.success(currentData)
-                        }
+                                Log.d("KHJ", "댓글을 수정했습니다")
+                                return Transaction.success(currentData)
+                            }
 
-                        override fun onComplete(
-                            error: DatabaseError?,
-                            committed: Boolean,
-                            currentData: DataSnapshot?
-                        ) {
-                            Log.d("KHJ", "postModifyTransaction:onComplete(), $error")
-                            Log.d("KHJ", "postModifyTransaction:onComplete() committed, $committed")
-                        }
-                    })
+                            override fun onComplete(
+                                error: DatabaseError?,
+                                committed: Boolean,
+                                currentData: DataSnapshot?
+                            ) {
+                                Log.d("KHJ", "postModifyTransaction:onComplete(), $error")
+                                Log.d(
+                                    "KHJ",
+                                    "postModifyTransaction:onComplete() committed, $committed"
+                                )
+                            }
+                        })
                 }
                 true
             }
@@ -312,7 +415,7 @@ class DetailActivity : RxAppCompatActivity() {
 
         override fun onBindViewHolder(holder: DetailRecyclerViewHolder, position: Int) {
             val comment = commentList[position]
-            Log.d("KHJ","comment: ${comment.message}, position: $position")
+            Log.d("KHJ", "comment: ${comment.message}, position: $position")
             holder.bind(comment, position)
         }
 

@@ -12,6 +12,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.ktx.Firebase
 import splitties.toast.toast
+import kotlin.math.log
 
 class LoginActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -19,17 +20,13 @@ class LoginActivity : AppCompatActivity() {
         setContentView(R.layout.activity_login)
 
         var user = FirebaseAuth.getInstance().currentUser
-        FirebaseAuth.getInstance().signOut()
-        user = null
+//        FirebaseAuth.getInstance().signOut()
+//        user = null
         if (user == null) {
             createSignInIntent()
         } else {
-//            Log.d("KHJ", user.providerId)
-//            Log.d("KHJ", user.providerData[0].providerId)
-//            Log.d("KHJ", user.email)
-//            val intent = Intent(this, MainActivity::class.java)
-//            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-//            startActivity(intent)
+            logUserProviderData(user)
+            startMainActivity()
 //            //
         }
     }

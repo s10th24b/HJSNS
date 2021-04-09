@@ -511,7 +511,6 @@ class CardsFragment : RxFragment() {
         }
     }
 
-
     fun formatTimeString(regTime: Long): String? {
         val SEC = 60
         val MIN = 60
