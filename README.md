@@ -3,7 +3,9 @@ HJ's Social Network Service :couplekiss:
 
 ## What is this?
 This is the Social Network Service Application anyone can post their card with comment on. 
+![](.README_images/app_logo.png)
 
+## How it works
 ![](.README_images/c770f767.png)
 
 
@@ -17,10 +19,11 @@ This is the Social Network Service Application anyone can post their card with c
 - [X] Add FloatingContextMenu to Implement Modify Operation in Post&Comment Using Firebase Transaction (done at 21.04.07)
 - [X] Add FloatingContextMenu to Implement Remove Operation in Post&Comment (done at 21.04.08)
 - [X] Introduce FireBase Authentication (done at 21.04.08)
-- [X] Apply AuthInfo to Profile Information
+- [X] Apply AuthInfo to Profile Information (done at 21.04.09)
+- [ ]  ~Add SharedPreference for Profile Info (you shouldn't do this!)~
+- [ ] Add User Profile Modification Function
 - [ ] Show Cards, Comments, and Likes of User in Profile Fragment
 - [ ] Add Administrator Account which can remove and modify all cards
-- [ ]  ~Add SharedPreference for Profile Info (you shouldn't do this!)~
 - [ ] Add Realtime Service notice there's new message
 - [ ] Add FCM for new message
 - [X] Automatically Scroll Up at Top of Items (done at 21.04.04)

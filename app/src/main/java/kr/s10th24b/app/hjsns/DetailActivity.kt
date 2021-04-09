@@ -192,8 +192,6 @@ class DetailActivity : RxAppCompatActivity() {
                         }
                     })
             }
-
-
     }
 
     override fun onContextItemSelected(item: MenuItem): Boolean {

@@ -40,7 +40,7 @@ class LoginActivity : AppCompatActivity() {
         startActivityForResult(
             AuthUI.getInstance()
                 .createSignInIntentBuilder()
-                .setLogo(R.drawable.authentication)
+                .setLogo(R.drawable.app_logo)
                 .setAvailableProviders(providers)
                 .setIsSmartLockEnabled(true)
                 .build(),

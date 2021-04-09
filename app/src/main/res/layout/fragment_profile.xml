@@ -42,7 +42,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        app:layout_constraintGuide_percent="0.5"
+        app:layout_constraintGuide_percent="0.45"
         app:layout_constraintTop_toTopOf="parent" />
 
     <ImageView
@@ -85,7 +85,7 @@
         android:id="@+id/imageView5"
         android:layout_width="40dp"
         android:layout_height="40dp"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="10dp"
         android:src="@android:drawable/ic_dialog_email"
         app:layout_constraintStart_toStartOf="@+id/profileEmailLabel"
         app:layout_constraintTop_toBottomOf="@+id/profileEmailLabel" />
@@ -102,7 +102,6 @@
         android:id="@+id/profileMyCardsButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="28dp"
         android:text="내가 작성한 카드 보기"
         app:cornerRadius="6dp"
         app:layout_constraintEnd_toStartOf="@+id/guideline8"
@@ -114,7 +113,7 @@
         android:id="@+id/profileMyCommentsButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="8dp"
         android:text="내가 작성한 댓글 보기"
         app:cornerRadius="6dp"
         app:layout_constraintEnd_toEndOf="@+id/profileMyCardsButton"
@@ -126,7 +125,7 @@
         android:id="@+id/profileMyLikesButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
+        android:layout_marginTop="8dp"
         android:text="내가 좋아요한 카드 보기"
         app:cornerRadius="6dp"
         app:layout_constraintEnd_toEndOf="@+id/profileMyCardsButton"
@@ -158,4 +157,14 @@
         android:orientation="horizontal"
         app:layout_constraintGuide_percent="0.03"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/profileLogoutButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="로그아웃"
+        app:layout_constraintEnd_toEndOf="@+id/profileMyLikesButton"
+        app:layout_constraintStart_toStartOf="@+id/profileMyLikesButton"
+        app:layout_constraintTop_toBottomOf="@+id/profileMyLikesButton" />
 </androidx.constraintlayout.widget.ConstraintLayout>

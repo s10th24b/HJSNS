@@ -323,7 +323,7 @@ class CardsFragment : RxFragment() {
         }
 
         override fun onBindViewHolder(holder: CardRecyclerViewHolder, position: Int) {
-            Log.d("KHJ","onBindViewHolder called!")
+//            Log.d("KHJ","onBindViewHolder called!")
             val card = cardList[position]
             holder.bind(card, position)
         }
