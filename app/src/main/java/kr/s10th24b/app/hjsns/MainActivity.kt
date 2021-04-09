@@ -20,9 +20,7 @@ import com.google.firebase.database.ValueEventListener
 import com.squareup.haha.perflib.Main
 import com.squareup.leakcanary.LeakCanary
 import com.trello.rxlifecycle4.components.support.RxAppCompatActivity
-import io.reactivex.rxjava3.core.Observable
 import io.reactivex.rxjava3.disposables.CompositeDisposable
-import io.reactivex.rxjava3.internal.operators.observable.ObservableInterval
 import io.reactivex.rxjava3.subjects.PublishSubject
 import kr.s10th24b.app.hjsns.databinding.ActivityMainBinding
 import splitties.intents.receiverSpec
@@ -60,7 +58,6 @@ class MainActivity : RxAppCompatActivity() {
 //                    badge.number = 99
                     binding.mainFloatingActionButton.visibility = View.VISIBLE
                     changeFragment(cardsFragment)
-                    mCompositeDisposable.add(cardsFragment.mCompositeDisposable)
                     true
                 }
                 R.id.profilePage -> {
@@ -69,7 +66,6 @@ class MainActivity : RxAppCompatActivity() {
 //                    changeFragment(profileFragment)
                     binding.mainFloatingActionButton.visibility = View.GONE
                     changeFragment(profileFragment)
-                    mCompositeDisposable.add(cardsFragment.mCompositeDisposable)
                     true
                 }
                 else -> false

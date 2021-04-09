@@ -85,116 +85,116 @@ class WriteActivity : RxAppCompatActivity() {
         layoutManager.orientation = LinearLayoutManager.HORIZONTAL
         binding.writeRecyclerView.layoutManager = layoutManager
 
-        mCompositeDisposable.add(
-            binding.writeShareButton.clicks()
-                .debounce(200L, TimeUnit.MILLISECONDS)
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe({
-                    if (binding.writeEditText.text.isNotBlank()) {
-                        when (mode) {
-                            "post" -> {
-                                val post = Post()
-                                val newRef =
-                                    FirebaseDatabase.getInstance().getReference("Posts").push()
-                                post.writeTime = ServerValue.TIMESTAMP
-                                post.bgUri = bgList[currentBgPosition]
-                                post.message = binding.writeEditText.text.toString()
-                                post.writerId = getMyId()
-                                post.postId = newRef.key.toString()
-                                newRef.setValue(post)
-                                    .addOnSuccessListener(this) { toast("카드 작성 성공") }
-                                    .addOnCanceledListener(this) { toast("카드 작성 취소") }
-                                    .addOnFailureListener(this) { toast("카드 작성 실패") }
-                                Log.d("KHJ", "Adding Post ${post.message}")
+        binding.writeShareButton.clicks()
+            .debounce(200L, TimeUnit.MILLISECONDS)
+            .compose(this.bindToLifecycle())
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe({
+                if (binding.writeEditText.text.isNotBlank()) {
+                    when (mode) {
+                        "post" -> {
+                            val post = Post()
+                            val newRef =
+                                FirebaseDatabase.getInstance().getReference("Posts").push()
+                            post.writeTime = ServerValue.TIMESTAMP
+                            post.bgUri = bgList[currentBgPosition]
+                            post.message = binding.writeEditText.text.toString()
+                            post.writerId = getMyId()
+                            post.postId = newRef.key.toString()
+                            newRef.setValue(post)
+                                .addOnSuccessListener(this) { toast("카드 작성 성공") }
+                                .addOnCanceledListener(this) { toast("카드 작성 취소") }
+                                .addOnFailureListener(this) { toast("카드 작성 실패") }
+                            Log.d("KHJ", "Adding Post ${post.message}")
 //                                toast("카드 작성 성공")
-                                finish()
-                            }
-                            "comment" -> {
-                                // 댓글 작성하는 사이에 글이 없어졌는지 판별해야함.
-                                FirebaseDatabase.getInstance().getReference("Posts")
-                                    .orderByChild("postId") .equalTo(intentPostId)
-                                    .addListenerForSingleValueEvent(object : ValueEventListener {
-                                        override fun onDataChange(snapshot: DataSnapshot) {
-                                            if (snapshot.exists()) {
+                            finish()
+                        }
+                        "comment" -> {
+                            // 댓글 작성하는 사이에 글이 없어졌는지 판별해야함.
+                            FirebaseDatabase.getInstance().getReference("Posts")
+                                .orderByChild("postId").equalTo(intentPostId)
+                                .addListenerForSingleValueEvent(object : ValueEventListener {
+                                    override fun onDataChange(snapshot: DataSnapshot) {
+                                        if (snapshot.exists()) {
 //                                                toast("post exist")
-                                                Log.d("KHJ", "post exist. adding comment.")
-                                                val comment = Comment()
-                                                val newRef =
-                                                    FirebaseDatabase.getInstance()
-                                                        .getReference("Comments/$intentPostId")
-                                                        .push()
-                                                comment.writeTime = ServerValue.TIMESTAMP
-                                                comment.bgUri = bgList[currentBgPosition]
-                                                comment.message =
-                                                    binding.writeEditText.text.toString()
-                                                comment.writerId = getMyId()
-                                                comment.postId = intentPostId
-                                                comment.commentId = newRef.key.toString()
-                                                newRef.setValue(comment)
-                                                Log.d("KHJ", "Adding Comment ${comment.message}")
-                                                //// You should write below code in writing part, not viewing activity
-                                                // here, right.
-                                                val postRef =
-                                                    FirebaseDatabase.getInstance()
-                                                        .getReference("Posts/$intentPostId")
-                                                postRef.runTransaction(object :
-                                                    Transaction.Handler {
-                                                    override fun doTransaction(currentData: MutableData): Transaction.Result {
-                                                        val p =
-                                                            currentData.getValue(Post::class.java)
-                                                                ?: return Transaction.success(
-                                                                    currentData
-                                                                )
-                                                        p.commentCount++
-                                                        currentData.value = p
+                                            Log.d("KHJ", "post exist. adding comment.")
+                                            val comment = Comment()
+                                            val newRef =
+                                                FirebaseDatabase.getInstance()
+                                                    .getReference("Comments/$intentPostId")
+                                                    .push()
+                                            comment.writeTime = ServerValue.TIMESTAMP
+                                            comment.bgUri = bgList[currentBgPosition]
+                                            comment.message =
+                                                binding.writeEditText.text.toString()
+                                            comment.writerId = getMyId()
+                                            comment.postId = intentPostId
+                                            comment.commentId = newRef.key.toString()
+                                            newRef.setValue(comment)
+                                            Log.d("KHJ", "Adding Comment ${comment.message}")
+                                            //// You should write below code in writing part, not viewing activity
+                                            // here, right.
+                                            val postRef =
+                                                FirebaseDatabase.getInstance()
+                                                    .getReference("Posts/$intentPostId")
+                                            postRef.runTransaction(object :
+                                                Transaction.Handler {
+                                                override fun doTransaction(currentData: MutableData): Transaction.Result {
+                                                    val p =
+                                                        currentData.getValue(Post::class.java)
+                                                            ?: return Transaction.success(
+                                                                currentData
+                                                            )
+                                                    p.commentCount++
+                                                    currentData.value = p
 //                                        Toast.makeText(this@WriteActivity,"카드가 수정되었습니다",Toast.LENGTH_SHORT).show()
-                                                        Log.d("KHJ", "댓글이 작성되었습니다")
-                                                        return Transaction.success(currentData)
-                                                    }
+                                                    Log.d("KHJ", "댓글이 작성되었습니다")
+                                                    return Transaction.success(currentData)
+                                                }
 
-                                                    override fun onComplete(
-                                                        error: DatabaseError?,
-                                                        committed: Boolean,
-                                                        currentData: DataSnapshot?
-                                                    ) {
-                                                        Log.d(
-                                                            "KHJ",
-                                                            "postModifyTransaction:onComplete(), $error"
-                                                        )
-                                                    }
-                                                })
+                                                override fun onComplete(
+                                                    error: DatabaseError?,
+                                                    committed: Boolean,
+                                                    currentData: DataSnapshot?
+                                                ) {
+                                                    Log.d(
+                                                        "KHJ",
+                                                        "postModifyTransaction:onComplete(), $error"
+                                                    )
+                                                }
+                                            })
 //                                toast("댓글 작성 성공")
-                                            } else {
-                                                toast("카드가 이미 삭제되었습니다")
-                                                Log.d(
-                                                    "KHJ",
-                                                    "post not exist. abort adding comment."
-                                                )
-                                            }
+                                        } else {
+                                            toast("카드가 이미 삭제되었습니다")
+                                            Log.d(
+                                                "KHJ",
+                                                "post not exist. abort adding comment."
+                                            )
                                         }
+                                    }
 
-                                        override fun onCancelled(error: DatabaseError) {
-                                            Log.d("KHJ", "onCancelled in adding comment")
-                                            error("onCancelled in adding comment")
-                                        }
-                                    })
-                                finish()
-                            }
-                            "postModify" -> {
-                                // 존재하는지 확인. 수정하는 도중에 지워질수도... 는 관리자 생각 안하니까 없나..?
-                                // 혹시 모르니까 넣을까?
-                                // 아니. 안전하게 Firebase 의 Update 기능을 이용한다.
-                                // Update 기능은.. 수정하는 것 뿐만 아니라 입력, 삭제도 모두 포함.
-                                // 만약 Update 시점에서 없으면 그냥 추가해버린다.
-                                // Exist 하는지를 직접 구현해야할듯
-                                // Transaction 을 이용하자.
-                                // 증가 카운터와 같이 동시 수정으로 인해 손상될 수 있는 데이터를 다루는 경우 트랜잭션 작업을 사용할 수 있습니다.
-                                val newRef =
-                                    FirebaseDatabase.getInstance()
-                                        .getReference("/Posts/${modifyCard.postId}")
+                                    override fun onCancelled(error: DatabaseError) {
+                                        Log.d("KHJ", "onCancelled in adding comment")
+                                        error("onCancelled in adding comment")
+                                    }
+                                })
+                            finish()
+                        }
+                        "postModify" -> {
+                            // 존재하는지 확인. 수정하는 도중에 지워질수도... 는 관리자 생각 안하니까 없나..?
+                            // 혹시 모르니까 넣을까?
+                            // 아니. 안전하게 Firebase 의 Update 기능을 이용한다.
+                            // Update 기능은.. 수정하는 것 뿐만 아니라 입력, 삭제도 모두 포함.
+                            // 만약 Update 시점에서 없으면 그냥 추가해버린다.
+                            // Exist 하는지를 직접 구현해야할듯
+                            // Transaction 을 이용하자.
+                            // 증가 카운터와 같이 동시 수정으로 인해 손상될 수 있는 데이터를 다루는 경우 트랜잭션 작업을 사용할 수 있습니다.
+                            val newRef =
+                                FirebaseDatabase.getInstance()
+                                    .getReference("/Posts/${modifyCard.postId}")
 //                                    FirebaseDatabase.getInstance().getReference("/Posts")
 
-                                // Update 쓰려다 취소. Transaction 으로 바꿈
+                            // Update 쓰려다 취소. Transaction 으로 바꿈
 //                                modifyCard.bgUri = bgList[currentBgPosition]
 //                                modifyCard.message = binding.writeEditText.text.toString()
 //                                val modifyValues = modifyCard.toMap()
@@ -206,83 +206,82 @@ class WriteActivity : RxAppCompatActivity() {
 //                                    .addOnCanceledListener(this) { toast("카드 수정 취소") }
 //                                    .addOnFailureListener(this) { toast("카드 수정 실패") }
 
-                                newRef.runTransaction(object : Transaction.Handler {
-                                    override fun doTransaction(currentData: MutableData): Transaction.Result {
-                                        val p = currentData.getValue(Post::class.java)
-                                            ?: return Transaction.success(currentData)
+                            newRef.runTransaction(object : Transaction.Handler {
+                                override fun doTransaction(currentData: MutableData): Transaction.Result {
+                                    val p = currentData.getValue(Post::class.java)
+                                        ?: return Transaction.success(currentData)
 
-                                        p.bgUri = bgList[currentBgPosition]
-                                        p.message = binding.writeEditText.text.toString()
-                                        currentData.value = p
+                                    p.bgUri = bgList[currentBgPosition]
+                                    p.message = binding.writeEditText.text.toString()
+                                    currentData.value = p
 //                                        Toast.makeText(this@WriteActivity,"카드가 수정되었습니다",Toast.LENGTH_SHORT).show()
-                                        Log.d("KHJ", "카드가 수정되었습니다")
-                                        return Transaction.success(currentData)
-                                    }
+                                    Log.d("KHJ", "카드가 수정되었습니다")
+                                    return Transaction.success(currentData)
+                                }
 
-                                    override fun onComplete(
-                                        error: DatabaseError?,
-                                        committed: Boolean,
-                                        currentData: DataSnapshot?
-                                    ) {
-                                        Log.d("KHJ", "postModifyTransaction:onComplete(), $error")
-                                        Log.d(
-                                            "KHJ",
-                                            "postModifyTransaction:onComplete() committed, $committed"
-                                        )
-                                    }
-                                })
-                                Log.d("KHJ", "Modifying Post ${modifyCard.message}")
-                                finish()
-                            }
-                            "commentModify" -> {
-                                val newRef =
-                                    FirebaseDatabase.getInstance()
-                                        .getReference("/Comments/${modifyComment.postId}/${modifyComment.commentId}")
-                                newRef.runTransaction(object : Transaction.Handler {
-                                    override fun doTransaction(currentData: MutableData): Transaction.Result {
-                                        val p = currentData.getValue(Comment::class.java)
-                                            ?: return Transaction.success(currentData)
-
-                                        p.bgUri = bgList[currentBgPosition]
-                                        p.message = binding.writeEditText.text.toString()
-                                        currentData.value = p
-//                                        Toast.makeText(this@WriteActivity,"댓글이 수정되었습니다",Toast.LENGTH_SHORT).show()
-                                        Log.d("KHJ", "댓글이 수정되었습니다")
-                                        return Transaction.success(currentData)
-                                    }
-
-                                    override fun onComplete(
-                                        error: DatabaseError?,
-                                        committed: Boolean,
-                                        currentData: DataSnapshot?
-                                    ) {
-                                        Log.d(
-                                            "KHJ",
-                                            "commentModifyTransaction:onComplete(), $error"
-                                        )
-                                        Log.d(
-                                            "KHJ",
-                                            "commentModifyTransaction:onComplete() committed, $committed"
-                                        )
-                                    }
-                                })
-                                Log.d("KHJ", "Modifying Comment ${modifyComment.message}")
-                                finish()
-
-                            }
-                            else -> {
-                                error("error in writeShareButton")
-                            }
+                                override fun onComplete(
+                                    error: DatabaseError?,
+                                    committed: Boolean,
+                                    currentData: DataSnapshot?
+                                ) {
+                                    Log.d("KHJ", "postModifyTransaction:onComplete(), $error")
+                                    Log.d(
+                                        "KHJ",
+                                        "postModifyTransaction:onComplete() committed, $committed"
+                                    )
+                                }
+                            })
+                            Log.d("KHJ", "Modifying Post ${modifyCard.message}")
+                            finish()
                         }
-                    } else {
-                        toast("내용을 작성해주세요")
-                    }
-                }, {
-                    Log.d("KHJ", "${it.toString()}")
-                    it.printStackTrace()
+                        "commentModify" -> {
+                            val newRef =
+                                FirebaseDatabase.getInstance()
+                                    .getReference("/Comments/${modifyComment.postId}/${modifyComment.commentId}")
+                            newRef.runTransaction(object : Transaction.Handler {
+                                override fun doTransaction(currentData: MutableData): Transaction.Result {
+                                    val p = currentData.getValue(Comment::class.java)
+                                        ?: return Transaction.success(currentData)
 
-                })
-        )
+                                    p.bgUri = bgList[currentBgPosition]
+                                    p.message = binding.writeEditText.text.toString()
+                                    currentData.value = p
+//                                        Toast.makeText(this@WriteActivity,"댓글이 수정되었습니다",Toast.LENGTH_SHORT).show()
+                                    Log.d("KHJ", "댓글이 수정되었습니다")
+                                    return Transaction.success(currentData)
+                                }
+
+                                override fun onComplete(
+                                    error: DatabaseError?,
+                                    committed: Boolean,
+                                    currentData: DataSnapshot?
+                                ) {
+                                    Log.d(
+                                        "KHJ",
+                                        "commentModifyTransaction:onComplete(), $error"
+                                    )
+                                    Log.d(
+                                        "KHJ",
+                                        "commentModifyTransaction:onComplete() committed, $committed"
+                                    )
+                                }
+                            })
+                            Log.d("KHJ", "Modifying Comment ${modifyComment.message}")
+                            finish()
+
+                        }
+                        else -> {
+                            error("error in writeShareButton")
+                        }
+                    }
+                } else {
+                    toast("내용을 작성해주세요")
+                }
+            }, {
+                Log.d("KHJ", "${it.toString()}")
+                it.printStackTrace()
+
+            })
     }
 
     @SuppressLint("HardwareIds")

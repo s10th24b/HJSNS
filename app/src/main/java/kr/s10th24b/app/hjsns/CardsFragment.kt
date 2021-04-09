@@ -34,7 +34,6 @@ class CardsFragment : RxFragment() {
     lateinit var layoutManager: LinearLayoutManager
     lateinit var postLikeListener: OnSuccessListener<Activity>
     var clickCardSubject = PublishSubject.create<Post>()
-    val mCompositeDisposable = CompositeDisposable()
     lateinit var postValueEventListener: ValueEventListener
     lateinit var commentChildEventListener: ChildEventListener
     lateinit var menuCard: Post
@@ -98,14 +97,14 @@ class CardsFragment : RxFragment() {
 
     private fun setClickCardSubject() {
 //        toast("setClickCardSubject!")
-        mCompositeDisposable.add(clickCardSubject
+        clickCardSubject
             .observeOn(AndroidSchedulers.mainThread())
+            .compose(this.bindToLifecycle())
             .subscribe {
                 val intent = Intent(context, DetailActivity::class.java)
                 intent.putExtra("post", it)
                 startActivity(intent)
             }
-        )
     }
 
     private fun setFirebaseDatabasePostListener() {
@@ -306,7 +305,6 @@ class CardsFragment : RxFragment() {
 
     override fun onDestroy() {
 //        toast("onDestroy!")
-        mCompositeDisposable.clear()
         super.onDestroy()
     }
 
@@ -372,12 +370,12 @@ class CardsFragment : RxFragment() {
             // 이렇게 있으면 또 recyclerView에서 holder가 없어져도 Observable을 갖고있어서 GC되지 않을텐데..
             // # Solved -> Wow!!! RxLifeCycle is Amazing!!
             binding.timeTextView.text = formatTimeString(card.writeTime as Long)
-            mCompositeDisposable.add(Observable.interval(60L, TimeUnit.SECONDS)
+            Observable.interval(60L, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .compose(this@CardsFragment.bindToLifecycle())
                 .subscribe {
                     binding.timeTextView.text = formatTimeString(card.writeTime as Long)
-                })
+                }
             binding.cardImageView.setOnClickListener {
                 clickCardSubject.onNext(card)
             }
@@ -433,7 +431,8 @@ class CardsFragment : RxFragment() {
                                         .into(binding.likeImageView)
                                     for (ch in snapshot.children) {
                                         if (ch.child("likerId").value == getMyId()) {
-                                            val removeLikeRef = likeRef.child(ch.getValue(Like::class.java)!!.likeId)
+                                            val removeLikeRef =
+                                                likeRef.child(ch.getValue(Like::class.java)!!.likeId)
                                             removeLikeRef.removeValue()
                                         }
                                     }
