@@ -105,13 +105,15 @@ class ProfileFragment : RxFragment(), MyAlertDialogFragment.MyAlertDialogListene
         }
     }
 
-    fun setButtonClick() {
+    private fun setButtonClick() {
         binding.profileMyCardsButton.clicks()
             .observeOn(AndroidSchedulers.mainThread())
             .debounce(200L, TimeUnit.MILLISECONDS)
             .bindUntilEvent(this, FragmentEvent.DESTROY_VIEW)
             .subscribe {
-
+                val intent = Intent(requireActivity(),UserCardsActivity::class.java)
+                intent.putExtra("type","myCard")
+                startActivity(intent)
             }
 
         binding.profileMyCommentsButton.clicks()
@@ -119,6 +121,9 @@ class ProfileFragment : RxFragment(), MyAlertDialogFragment.MyAlertDialogListene
             .debounce(200L, TimeUnit.MILLISECONDS)
             .bindUntilEvent(this, FragmentEvent.DESTROY_VIEW)
             .subscribe {
+                val intent = Intent(requireActivity(),UserCardsActivity::class.java)
+                intent.putExtra("type","myCommentCard")
+                startActivity(intent)
 
             }
 
@@ -127,6 +132,9 @@ class ProfileFragment : RxFragment(), MyAlertDialogFragment.MyAlertDialogListene
             .debounce(200L, TimeUnit.MILLISECONDS)
             .bindUntilEvent(this, FragmentEvent.DESTROY_VIEW)
             .subscribe {
+                val intent = Intent(requireActivity(),UserCardsActivity::class.java)
+                intent.putExtra("type","myLikeCard")
+                startActivity(intent)
 
             }
 

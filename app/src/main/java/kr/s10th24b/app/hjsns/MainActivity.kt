@@ -44,7 +44,7 @@ class MainActivity : RxAppCompatActivity()//,MyAlertDialogFragment.MyAlertDialog
 //        toast("neg in main")
 //    }
 
-    private val cardsFragment by lazy { CardsFragment() }
+    private val cardsFragment by lazy { CardsFragment("all") }
     private val profileFragment by lazy { ProfileFragment() }
 
     override fun onCreate(savedInstanceState: Bundle?) {

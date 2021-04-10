@@ -18,15 +18,13 @@ This is the Social Network Service Application anyone can post their card with c
 - [X] Set Comment and Like System along with Post (when post removed, comment and like should be removed too.) (done at 21.04.08)
 - [X] Add FloatingContextMenu to Implement Modify Operation in Post&Comment Using Firebase Transaction (done at 21.04.07)
 - [X] Add FloatingContextMenu to Implement Remove Operation in Post&Comment (done at 21.04.08)
+- [ ] Add Report-to-Developer System
 - [X] Introduce FireBase Authentication (done at 21.04.08)
 - [X] Apply AuthInfo to Profile Information (done at 21.04.09)
 - [ ]  ~Add SharedPreference for Profile Info (you shouldn't do this!)~
-- [ ] Add User Profile Modification Function
-- [ ] Show Cards, Comments, and Likes of User in Profile Fragment
-- [ ] Add Administrator Account which can remove and modify all cards
-- [ ] Add Realtime Service notice there's new message
+- [X] Add User Profile Modification Function
+- [X] Show Cards, Comments, and Likes of User in Profile Fragment
 - [ ] Add FCM for new message
-- [ ] Add Report-to-Developer System
 - [X] Automatically Scroll Up at Top of Items (done at 21.04.04)
 - [ ] Add Photo Uploading System in Posting Operation
 - [ ] Add Observer Patterns such as Cards Badge

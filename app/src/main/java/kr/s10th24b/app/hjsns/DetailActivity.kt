@@ -266,7 +266,7 @@ class DetailActivity : RxAppCompatActivity(), MyAlertDialogFragment.MyAlertDialo
                 true
             }
             R.id.menu_item_remove -> {
-                val removeAlertDialog = MyAlertDialogFragment("Activity","정말 카드를 삭제하시겠습니까?")
+                val removeAlertDialog = MyAlertDialogFragment("Activity","정말  댓글을 삭제하시겠습니까?")
                 removeAlertDialog.show(supportFragmentManager, "Item Removing")
                 true
             }
