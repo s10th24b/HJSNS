@@ -2,6 +2,7 @@ package kr.s10th24b.app.hjsns
 
 import android.app.Activity
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
@@ -10,6 +11,7 @@ import com.firebase.ui.auth.IdpResponse
 import com.firebase.ui.auth.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.database.*
 import com.google.firebase.ktx.Firebase
 import splitties.toast.toast
 import kotlin.math.log
@@ -22,7 +24,7 @@ class LoginActivity : AppCompatActivity() {
         var user = FirebaseAuth.getInstance().currentUser
 //        FirebaseAuth.getInstance().signOut()
 //        user = null
-        if (user == null) {
+        if (user == null || !user.isEmailVerified) {
             createSignInIntent()
         } else {
             logUserProviderData(user)
@@ -42,7 +44,7 @@ class LoginActivity : AppCompatActivity() {
                 .createSignInIntentBuilder()
                 .setLogo(R.drawable.app_logo)
                 .setAvailableProviders(providers)
-                .setIsSmartLockEnabled(true)
+                .setIsSmartLockEnabled(false)
                 .build(),
             MainActivity.RC_SIGN_IN
         )
@@ -58,12 +60,13 @@ class LoginActivity : AppCompatActivity() {
 
             if (resultCode == Activity.RESULT_OK) {
                 // sign-in success
-                val user = FirebaseAuth.getInstance().currentUser
-                logUserProviderData(user!!)
-                val providerId = user.providerData[1].providerId
+                val curUser = FirebaseAuth.getInstance().currentUser
+                val userRef = FirebaseDatabase.getInstance().getReference("Users")
+                logUserProviderData(curUser!!)
+                val providerId = curUser.providerData[1].providerId
                 if (providerId == "password") {
-                    if (!user.isEmailVerified) {
-                        user.sendEmailVerification()
+                    if (!curUser.isEmailVerified) {
+                        curUser.sendEmailVerification()
                             .addOnCompleteListener { task ->
                                 if (task.isSuccessful) {
                                     toast("인증 메일 발송 성공")
@@ -74,6 +77,35 @@ class LoginActivity : AppCompatActivity() {
                         finish()
                     }
                 }
+                userRef.orderByChild("firebaseUid").equalTo(curUser.uid)
+                    .addListenerForSingleValueEvent(object : ValueEventListener {
+                        override fun onDataChange(snapshot: DataSnapshot) {
+                            if (!snapshot.exists()) {
+                                val newKey = userRef.push()
+                                val user = Users()
+                                user.name = curUser.displayName ?: "NoName"
+                                user.email = curUser.email ?: "NoEmail"
+                                val photoUrl = curUser.photoUrl ?: Uri.parse("")
+                                user.photoUrl = photoUrl.toString()
+                                user.firebaseUid = curUser.uid ?: "NoName"
+                                user.provider = providerId
+                                user.startTime = ServerValue.TIMESTAMP
+                                user.userId = newKey.key.toString()
+                                newKey.setValue(user)
+                                    .addOnCompleteListener { task ->
+                                        if (task.isSuccessful) {
+                                            toast("User 생성 성공")
+                                        } else {
+                                            toast("User 생성 실패")
+                                            error("Error in userRef.setValue")
+                                        }
+                                    }
+                            }
+                        }
+
+                        override fun onCancelled(error: DatabaseError) {
+                        }
+                    })
                 startMainActivity()
             } else {
                 // sign in failed
