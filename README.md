@@ -22,7 +22,8 @@ This is the Social Network Service Application anyone can post their card with c
 - [X] Introduce FireBase Authentication (done at 21.04.08)
 - [X] Apply AuthInfo to Profile Information (done at 21.04.09)
 - [ ]  ~Add SharedPreference for Profile Info (you shouldn't do this!)~
-- [X] Add User Profile Modification Function
+- [ ] Add User Profile Modification Function 
+- [X] Show Cards, Comments, and Likes of User in Profile Fragment (done at 04.10)
 - [X] Show Cards, Comments, and Likes of User in Profile Fragment
 - [ ] Add FCM for new message
 - [X] Automatically Scroll Up at Top of Items (done at 21.04.04)

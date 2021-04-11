@@ -62,7 +62,7 @@ class CardsFragment(val showType: String) : RxFragment(),
         arguments?.let {
         }
 
-        setFirebaseDatabasePostListener(showType)
+        setFirebaseDatabasePostListener(CurrentUser.getInstance(), showType)
         setClickCardSubject()
     }
 
@@ -123,12 +123,12 @@ class CardsFragment(val showType: String) : RxFragment(),
             }
     }
 
-    private fun setFirebaseDatabasePostListener(type: String) {
+    private fun setFirebaseDatabasePostListener(user: Users, type: String) {
         recyclerViewAdapter = CardRecyclerViewAdapter()
         // FireBase Data pulling and save it to posts variable
         allRef = FirebaseDatabase.getInstance().getReference("/Posts").orderByChild("writeTime")
         myCardRef = FirebaseDatabase.getInstance().getReference("/Posts").orderByChild("writerId")
-            .equalTo(getDeviceId())
+            .equalTo(user.userId)
         Log.d("KHJ", "onChildAdded in childeventlistener!")
 //        val myCommentCardRef = FirebaseDatabase.getInstance().getReference("/Posts").orderByChild("writerId").equalTo(getDeviceId())
 //        val myLikeCardRef = FirebaseDatabase.getInstance().getReference("/Posts").orderByChild("writerId").equalTo(getDeviceId())
@@ -388,7 +388,7 @@ class CardsFragment(val showType: String) : RxFragment(),
                 .into(binding.cardImageView)
             // if user already like this post
             FirebaseDatabase.getInstance().getReference("Likes/${card.postId}")
-                .orderByChild("likerId").equalTo(getDeviceId())
+                .orderByChild("likerId").equalTo(CurrentUser.getInstance().userId)
                 .addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         if (snapshot.exists()) {
@@ -447,7 +447,7 @@ class CardsFragment(val showType: String) : RxFragment(),
                 val inflater = MenuInflater(activity)
                 inflater.inflate(R.menu.card_floating_menu, menu)
                 //                    menu.setHeaderTitle("메뉴")
-                if (card.writerId == getDeviceId()) {
+                if (card.writerId == CurrentUser.getInstance().userId) {
                     menu.removeItem(R.id.menu_item_report)
                 } else {
                     menu.removeItem(R.id.menu_item_remove)
@@ -462,7 +462,7 @@ class CardsFragment(val showType: String) : RxFragment(),
                     val likeRef =
                         FirebaseDatabase.getInstance().getReference("Likes/${card.postId}")
                     // a 가 Unit 이다... ValueEventListener 를 반환해야 remove가능한데...
-                    likeRef.orderByChild("likerId").equalTo(getDeviceId())
+                    likeRef.orderByChild("likerId").equalTo(CurrentUser.getInstance().userId)
                         .addListenerForSingleValueEvent(object : ValueEventListener {
                             override fun onDataChange(snapshot: DataSnapshot) {
                                 Log.d("KHJ", "onDataChange in likeClick")
@@ -473,7 +473,7 @@ class CardsFragment(val showType: String) : RxFragment(),
                                         .load(R.drawable.lb_ic_thumb_up_outline)
                                         .into(binding.likeImageView)
                                     for (ch in snapshot.children) {
-                                        if (ch.child("likerId").value == getDeviceId()) {
+                                        if (ch.child("likerId").value == CurrentUser.getInstance().userId) {
                                             val removeLikeRef =
                                                 likeRef.child(ch.getValue(Like::class.java)!!.likeId)
                                             removeLikeRef.removeValue()
@@ -511,7 +511,7 @@ class CardsFragment(val showType: String) : RxFragment(),
                                         .getReference("Likes/${card.postId}").push()
                                     val like = Like()
                                     like.likeId = newRef.key.toString()
-                                    like.likerId = getDeviceId()
+                                    like.likerId = CurrentUser.getInstance().userId
                                     like.postId = card.postId
                                     like.likeTime = ServerValue.TIMESTAMP
                                     newRef.setValue(like)

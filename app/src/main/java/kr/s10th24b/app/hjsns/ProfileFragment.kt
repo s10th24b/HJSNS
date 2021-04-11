@@ -13,10 +13,6 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.firebase.ui.auth.AuthUI
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.UserInfo
-import com.google.firebase.ktx.Firebase
 import com.jakewharton.rxbinding4.view.clicks
 import com.trello.rxlifecycle4.android.FragmentEvent
 import com.trello.rxlifecycle4.components.support.RxDialogFragment
@@ -32,7 +28,6 @@ import kotlin.math.log
 
 class ProfileFragment : RxFragment(), MyAlertDialogFragment.MyAlertDialogListener {
     lateinit var binding: FragmentProfileBinding
-    lateinit var mUser: FirebaseUser
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
@@ -45,36 +40,21 @@ class ProfileFragment : RxFragment(), MyAlertDialogFragment.MyAlertDialogListene
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentProfileBinding.inflate(layoutInflater)
-        applyUserInfo()
         setView()
         setButtonClick()
-
-
-
 
         return binding.root
     }
 
-    fun applyUserInfo() {
-        val curUser = FirebaseAuth.getInstance().currentUser
-        if (curUser != null) {
-            mUser = curUser
-        } else {
-            error("mUser error")
-        }
-        Log.d("KHJ", mUser.toString())
-    }
 
     fun setView() {
-        val data = mUser.providerData[1]
-        binding.profileNameTextView.text = data.displayName.let {
-            if (it.isNullOrBlank()) "NoName" else it
-        }
-        binding.profileEmailTextView.text = data.email ?: "NoEmailName"
+        binding.profileNameTextView.text = CurrentUser.getInstance().name
+        binding.profileEmailTextView.text = CurrentUser.getInstance().email
         Glide.with(this)
-            .load(data.photoUrl ?: R.drawable.github_auth_icon)
+            .load(CurrentUser.getInstance().photoUrl)
             .into(binding.profilePhotoImageView)
-        when (data.providerId) {
+        Log.d("KHJ","provider: ${CurrentUser.getInstance().provider}")
+        when (CurrentUser.getInstance().provider) {
             "github.com" -> {
                 Glide.with(this)
                     .load(R.drawable.github_auth_icon)
@@ -145,7 +125,6 @@ class ProfileFragment : RxFragment(), MyAlertDialogFragment.MyAlertDialogListene
             .subscribe {
                 val logoutDialog = MyAlertDialogFragment("Fragment","로그아웃하시겠습니까?")
                 logoutDialog.show(childFragmentManager, "LogoutDialog")
-//                logoutDialog.show(parentFragmentManager, "LogoutDialog")
 
             }
     }

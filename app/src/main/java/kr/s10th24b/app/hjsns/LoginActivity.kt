@@ -28,7 +28,24 @@ class LoginActivity : AppCompatActivity() {
             createSignInIntent()
         } else {
             logUserProviderData(user)
-            startMainActivity()
+            FirebaseDatabase.getInstance().getReference("Users").orderByChild("firebaseUid")
+                .equalTo(user.uid).addListenerForSingleValueEvent(object : ValueEventListener {
+                    override fun onDataChange(snapshot: DataSnapshot) {
+                        if (snapshot.exists()) {
+                            val ssUser = snapshot.getValue(Users::class.java)
+                            ssUser?.let {
+                                CurrentUser.setInstance(ssUser)
+                                startMainActivity()
+                            }
+                        } else {
+                            error("Error in LoginActivity!")
+                            finish()
+                        }
+                    }
+
+                    override fun onCancelled(error: DatabaseError) {
+                    }
+                })
 //            //
         }
     }
@@ -75,6 +92,7 @@ class LoginActivity : AppCompatActivity() {
                                 }
                             }
                         finish()
+                        return
                     }
                 }
                 userRef.orderByChild("firebaseUid").equalTo(curUser.uid)
@@ -83,30 +101,45 @@ class LoginActivity : AppCompatActivity() {
                             if (!snapshot.exists()) {
                                 val newKey = userRef.push()
                                 val user = Users()
-                                user.name = curUser.displayName ?: "NoName"
-                                user.email = curUser.email ?: "NoEmail"
-                                val photoUrl = curUser.photoUrl ?: Uri.parse("")
-                                user.photoUrl = photoUrl.toString()
-                                user.firebaseUid = curUser.uid ?: "NoName"
-                                user.provider = providerId
-                                user.startTime = ServerValue.TIMESTAMP
-                                user.userId = newKey.key.toString()
+                                setUser(user, curUser, newKey.toString())
+                                CurrentUser.setInstance(user)
                                 newKey.setValue(user)
                                     .addOnCompleteListener { task ->
                                         if (task.isSuccessful) {
                                             toast("User 생성 성공")
+                                            startMainActivity()
                                         } else {
                                             toast("User 생성 실패")
                                             error("Error in userRef.setValue")
                                         }
                                     }
                             }
+                            else {
+                                Log.d("KHJ","Already User Exist!")
+                                FirebaseDatabase.getInstance().getReference("Users").orderByChild("firebaseUid")
+                                    .equalTo(curUser.uid).addListenerForSingleValueEvent(object : ValueEventListener {
+                                        override fun onDataChange(snapshot: DataSnapshot) {
+                                            if (snapshot.exists()) {
+                                                val ssUser = snapshot.getValue(Users::class.java)
+                                                ssUser?.let {
+                                                    CurrentUser.setInstance(ssUser)
+                                                    startMainActivity()
+                                                }
+                                            } else {
+                                                finish()
+                                                error("Error in LoginActivity!")
+                                            }
+                                        }
+
+                                        override fun onCancelled(error: DatabaseError) {
+                                        }
+                                    })
+                            }
                         }
 
                         override fun onCancelled(error: DatabaseError) {
                         }
                     })
-                startMainActivity()
             } else {
                 // sign in failed
                 toast("Sing-in Failed")
@@ -128,5 +161,23 @@ class LoginActivity : AppCompatActivity() {
         val intent = Intent(this, MainActivity::class.java)
         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         startActivity(intent)
+    }
+
+    fun setUser(user: Users, curUser: FirebaseUser, key: String) {
+        user.name = curUser.displayName.let {
+            if (it.isNullOrBlank()) "NoName"
+            else it
+        }
+        user.email = curUser.email.let {
+            if (it.isNullOrBlank()) "NoEmail"
+            else it
+        }
+        val photoUrl = curUser.photoUrl ?: Uri.parse("")
+        user.photoUrl = photoUrl.toString()
+        user.firebaseUid = curUser.uid
+        user.provider = curUser.providerData[1].providerId
+        Log.d("KHJ","in setUser, provider: ${user.provider}")
+        user.startTime = ServerValue.TIMESTAMP
+        user.userId = key
     }
 }
