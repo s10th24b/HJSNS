@@ -47,9 +47,6 @@ class CardsFragment(val showType: String) : RxFragment(),
     lateinit var myCardRef: Query
     lateinit var childListener: ChildEventListener
 
-    var alreadyCreated = false
-
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 //        toast("onCreate")
@@ -307,7 +304,6 @@ class CardsFragment(val showType: String) : RxFragment(),
 //        toast("onResume!")
         // Refresh View Data
         super.onResume()
-        alreadyCreated = true
     }
 
     override fun onPause() {
