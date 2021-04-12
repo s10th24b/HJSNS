@@ -43,12 +43,8 @@ class UserCardFragment(val showType: String) : RxFragment(),
 
     lateinit var myCommentCardRef: DatabaseReference
     lateinit var myLikeCardRef: DatabaseReference
-    lateinit var valueListener: ValueEventListener
     lateinit var childListener: ChildEventListener
     lateinit var childListenerPairsList: MutableList<Pair<Query, ChildEventListener>>
-
-    var alreadyCreated = false
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -338,7 +334,6 @@ class UserCardFragment(val showType: String) : RxFragment(),
                                                     }
                                                 })
                                             childListenerPairsList.add(Pair(query, childListener))
-
                                         }
                                     }
 
@@ -406,7 +401,6 @@ class UserCardFragment(val showType: String) : RxFragment(),
 //        toast("onResume!")
         // Refresh View Data
         super.onResume()
-        alreadyCreated = true
     }
 
     override fun onPause() {
@@ -422,7 +416,7 @@ class UserCardFragment(val showType: String) : RxFragment(),
 
     override fun onSaveInstanceState(outState: Bundle) {
 //        toast("onSaveInstanceState()")
-        Log.d("KHJ", "onSaveInstanceState()!")
+//        Log.d("KHJ", "onSaveInstanceState()!")
         super.onSaveInstanceState(outState)
     }
 
@@ -432,7 +426,7 @@ class UserCardFragment(val showType: String) : RxFragment(),
     }
 
     override fun onDestroy() {
-        toast("onDestroy!")
+//        toast("onDestroy!")
         super.onDestroy()
 //        when (showType) {
 //            "myCommentCard" -> myCommentCardRef.removeEventListener(valueListener)

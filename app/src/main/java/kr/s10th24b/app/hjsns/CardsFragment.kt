@@ -333,7 +333,7 @@ class CardsFragment(val showType: String) : RxFragment(),
     }
 
     override fun onDestroy() {
-        toast("onDestroy!")
+//        toast("onDestroy!")
         super.onDestroy()
         when (showType) {
             "all" -> allRef.removeEventListener(childListener)
