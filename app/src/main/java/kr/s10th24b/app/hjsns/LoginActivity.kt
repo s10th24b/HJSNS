@@ -12,7 +12,9 @@ import com.firebase.ui.auth.data.model.User
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.database.*
+import com.google.firebase.iid.FirebaseInstanceId
 import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.FirebaseMessaging
 import splitties.toast.toast
 import kotlin.math.log
 
@@ -40,7 +42,15 @@ class LoginActivity : AppCompatActivity() {
                             Log.d("KHJ",ssUser.printToString())
                             ssUser.let {
                                 CurrentUser.setInstance(ssUser)
-                                startMainActivity()
+                                FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                                    if (task.isSuccessful) {
+                                        toast("token: ${task.result}")
+                                        Log.d("KHJ",task.result.toString())
+                                        startMainActivity()
+                                    } else {
+                                        error("Error in getting token")
+                                    }
+                                }
                             }
                         } else {
                             FirebaseAuth.getInstance().signOut()
@@ -112,6 +122,15 @@ class LoginActivity : AppCompatActivity() {
                                     .addOnCompleteListener { task ->
                                         if (task.isSuccessful) {
                                             toast("User 생성 성공")
+                                            FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                                                if (task.isSuccessful) {
+                                                    toast("token: ${task.result}")
+                                                    Log.d("KHJ","token: "+task.result.toString())
+                                                } else {
+                                                    error("Error in getting token")
+                                                }
+
+                                            }
                                             startMainActivity()
                                         } else {
                                             toast("User 생성 실패")

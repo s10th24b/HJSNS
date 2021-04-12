@@ -13,9 +13,11 @@ import com.google.firebase.messaging.FirebaseMessagingService
 import com.google.firebase.messaging.RemoteMessage
 import kr.s10th24b.app.hjsns.MainActivity
 import kr.s10th24b.app.hjsns.R
+import splitties.toast.toast
 
 class MyFirebaseMessagingService : FirebaseMessagingService() {
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
+        Log.d("KHJ","From: ${remoteMessage.from}")
         if (remoteMessage.data.isNotEmpty()) {
             Log.d("KHJ", "Message data payload : ${remoteMessage.data}")
             if (false) {
@@ -25,28 +27,35 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             }
             // Check if message contains a notification payLoad
             if (remoteMessage.notification != null) {
-                Log.d("KHJ", "Message Notification Body: ${remoteMessage.notification.toString()}")
+                Log.d("KHJ", "Message Notification Title: ${(remoteMessage.notification as RemoteMessage.Notification).title}")
+                Log.d("KHJ", "Message Notification Body: ${(remoteMessage.notification as RemoteMessage.Notification).body}")
             }
         }
         super.onMessageReceived(remoteMessage)
     }
 
-    override fun onNewToken(token: String) {
-        super.onNewToken(token)
-        Log.d("KHJ", "onNewToken token: $token")
-        sendRegistrationToServer(token)
+    override fun onDeletedMessages() {
+        Log.d("KHJ","onDeletedMessages. You need to sync to App Server!")
+        super.onDeletedMessages()
     }
 
-    fun sendRegistrationToServer(token: String) {
+    override fun onNewToken(token: String) {
+        Log.d("KHJ", "onNewToken token: $token")
+        toast("new Token: $token")
+        sendRegistrationToServer(token)
+        super.onNewToken(token)
+    }
+
+    private fun sendRegistrationToServer(token: String) {
         Log.d("KHJ", "in sendRegistrationToServer")
     }
 
-    fun scheduleJob() {
+    private fun scheduleJob() {
         Log.d("KHJ", "scheduleJob in")
 
     }
 
-    fun handleNow() {
+    private fun handleNow() {
         Log.d("KHJ", "handleNow in")
 
     }

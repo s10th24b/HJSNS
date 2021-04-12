@@ -126,7 +126,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="내가 좋아요한 카드"
+        android:text="내가 좋아요 한 카드"
         app:cornerRadius="6dp"
         app:layout_constraintEnd_toEndOf="@+id/profileMyCardsButton"
         app:layout_constraintHorizontal_bias="1.0"
