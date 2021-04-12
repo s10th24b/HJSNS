@@ -276,7 +276,7 @@ class DetailActivity : RxAppCompatActivity(), MyAlertDialogFragment.MyAlertDialo
             R.id.menu_item_report -> {
                 val i = Intent(Intent.ACTION_SEND)
                 i.type = "message/rfc822"
-                i.putExtra(Intent.EXTRA_EMAIL, arrayOf("allen246@naver.com"))
+                i.putExtra(Intent.EXTRA_EMAIL, arrayOf(getString(R.string.developer_email)))
                 i.putExtra(Intent.EXTRA_SUBJECT, "Report Email from HJSNS to Developer")
                 if (menuIn is Post) {
                     i.putExtra(Intent.EXTRA_TEXT, menuCard.toMap().toString())
