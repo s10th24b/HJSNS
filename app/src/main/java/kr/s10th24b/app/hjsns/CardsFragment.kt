@@ -2,6 +2,7 @@ package kr.s10th24b.app.hjsns
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
@@ -80,6 +81,20 @@ class CardsFragment(val showType: String) : RxFragment(),
             }
 
             R.id.menu_item_report -> {
+                val i = Intent(Intent.ACTION_SEND)
+                i.type = "message/rfc822"
+                i.putExtra(Intent.EXTRA_EMAIL, arrayOf("allen246@naver.com"))
+                i.putExtra(Intent.EXTRA_SUBJECT, "Report Email from HJSNS to Developer")
+                i.putExtra(Intent.EXTRA_TEXT, menuCard.toMap().toString())
+                try {
+                    startActivity(Intent.createChooser(i, "Send mail..."))
+                } catch (ex: ActivityNotFoundException) {
+                    Toast.makeText(
+                        requireActivity(),
+                        "There are no email clients installed.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
                 true
             }
             else -> {

@@ -14,7 +14,7 @@ class Post: Serializable {
     var commentCount = 0L
     var likeCount = 0L
 
-    @Exclude
+
     fun toMap(): Map<String,Any?> {
         return mapOf(
             "postId" to postId,

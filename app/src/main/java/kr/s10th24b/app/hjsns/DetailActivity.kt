@@ -1,12 +1,14 @@
 package kr.s10th24b.app.hjsns
 
 import android.annotation.SuppressLint
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.util.Log
 import android.view.*
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -23,6 +25,7 @@ import splitties.toast.toast
 import java.text.SimpleDateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
+
 
 class DetailActivity : RxAppCompatActivity(), MyAlertDialogFragment.MyAlertDialogListener {
     lateinit var binding: ActivityDetailBinding
@@ -266,11 +269,30 @@ class DetailActivity : RxAppCompatActivity(), MyAlertDialogFragment.MyAlertDialo
                 true
             }
             R.id.menu_item_remove -> {
-                val removeAlertDialog = MyAlertDialogFragment("Activity","정말  댓글을 삭제하시겠습니까?")
+                val removeAlertDialog = MyAlertDialogFragment("Activity", "정말  댓글을 삭제하시겠습니까?")
                 removeAlertDialog.show(supportFragmentManager, "Item Removing")
                 true
             }
             R.id.menu_item_report -> {
+                val i = Intent(Intent.ACTION_SEND)
+                i.type = "message/rfc822"
+                i.putExtra(Intent.EXTRA_EMAIL, arrayOf("allen246@naver.com"))
+                i.putExtra(Intent.EXTRA_SUBJECT, "Report Email from HJSNS to Developer")
+                if (menuIn is Post) {
+                    i.putExtra(Intent.EXTRA_TEXT, menuCard.toMap().toString())
+                } else if (menuIn is Comment) {
+                    i.putExtra(Intent.EXTRA_TEXT, menuComment.toMap().toString())
+                }
+                try {
+                    startActivity(Intent.createChooser(i, "Send mail..."))
+                } catch (ex: ActivityNotFoundException) {
+                    Toast.makeText(
+                        this,
+                        "There are no email clients installed.",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
                 true
             }
             else -> {
