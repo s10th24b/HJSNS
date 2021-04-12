@@ -13,7 +13,9 @@ import com.bumptech.glide.load.resource.bitmap.RoundedCorners
 import com.bumptech.glide.request.RequestOptions
 import com.firebase.ui.auth.AuthUI
 import com.google.android.material.snackbar.Snackbar
+import com.google.firebase.database.*
 import com.jakewharton.rxbinding4.view.clicks
+import com.jakewharton.rxbinding4.widget.textChanges
 import com.trello.rxlifecycle4.android.FragmentEvent
 import com.trello.rxlifecycle4.components.support.RxDialogFragment
 import com.trello.rxlifecycle4.components.support.RxFragment
@@ -45,7 +47,33 @@ class ProfileFragment : RxFragment(), MyAlertDialogFragment.MyAlertDialogListene
 
 
     fun setView() {
-        binding.profileNameTextView.text = CurrentUser.getInstance().name
+        binding.profileNameEditTextView.setText(CurrentUser.getInstance().name)
+        binding.profileNameEditTextView.textChanges()
+            .observeOn(AndroidSchedulers.mainThread())
+            .subscribe { chName ->
+                CurrentUser.getInstance().name = chName.toString()
+                FirebaseDatabase.getInstance().getReference("Users").child(CurrentUser.getInstance().userId)
+                    .runTransaction(object : Transaction.Handler {
+                        override fun doTransaction(currentData: MutableData): Transaction.Result {
+                            val p = currentData.getValue(Users::class.java)
+                                ?: return Transaction.success(currentData)
+                            p.name = chName.toString()
+                            currentData.value = p
+                            return Transaction.success(currentData)
+                        }
+
+                        override fun onComplete(
+                            error: DatabaseError?,
+                            committed: Boolean,
+                            currentData: DataSnapshot?
+                        ) {
+                            Log.d(
+                                "KHJ",
+                                "changeNameTransaction:onComplete(), $error"
+                            )
+                        }
+                    } )
+            }
         binding.profileEmailTextView.text = CurrentUser.getInstance().email
         Glide.with(this)
             .load(CurrentUser.getInstance().photoUrl)
