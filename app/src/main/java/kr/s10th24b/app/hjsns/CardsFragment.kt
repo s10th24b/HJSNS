@@ -62,7 +62,7 @@ class CardsFragment(val showType: String) : RxFragment(),
         arguments?.let {
         }
 
-        setFirebaseDatabasePostListener(CurrentUser.getInstance(), showType)
+        setFirebaseDatabasePostListener(showType)
         setClickCardSubject()
     }
 
@@ -81,6 +81,7 @@ class CardsFragment(val showType: String) : RxFragment(),
                 removeAlertDialog.show(childFragmentManager, "Item Removing")
                 true
             }
+
             R.id.menu_item_report -> {
                 true
             }
@@ -123,12 +124,12 @@ class CardsFragment(val showType: String) : RxFragment(),
             }
     }
 
-    private fun setFirebaseDatabasePostListener(user: Users, type: String) {
+    private fun setFirebaseDatabasePostListener(type: String) {
         recyclerViewAdapter = CardRecyclerViewAdapter()
         // FireBase Data pulling and save it to posts variable
         allRef = FirebaseDatabase.getInstance().getReference("/Posts").orderByChild("writeTime")
         myCardRef = FirebaseDatabase.getInstance().getReference("/Posts").orderByChild("writerId")
-            .equalTo(user.userId)
+            .equalTo(CurrentUser.getInstance().userId)
         Log.d("KHJ", "onChildAdded in childeventlistener!")
 //        val myCommentCardRef = FirebaseDatabase.getInstance().getReference("/Posts").orderByChild("writerId").equalTo(getDeviceId())
 //        val myLikeCardRef = FirebaseDatabase.getInstance().getReference("/Posts").orderByChild("writerId").equalTo(getDeviceId())
@@ -332,7 +333,7 @@ class CardsFragment(val showType: String) : RxFragment(),
     }
 
     override fun onDestroy() {
-//        toast("onDestroy!")
+        toast("onDestroy!")
         super.onDestroy()
         when (showType) {
             "all" -> allRef.removeEventListener(childListener)

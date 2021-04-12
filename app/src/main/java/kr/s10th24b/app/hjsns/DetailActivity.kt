@@ -65,7 +65,7 @@ class DetailActivity : RxAppCompatActivity(), MyAlertDialogFragment.MyAlertDialo
             val inflater = MenuInflater(this@DetailActivity)
             inflater.inflate(R.menu.card_floating_menu, menu)
             //                    menu.setHeaderTitle("메뉴")
-            if (post.writerId == getMyId()) {
+            if (post.writerId == CurrentUser.getInstance().userId) {
                 menu.removeItem(R.id.menu_item_report)
             } else {
                 menu.removeItem(R.id.menu_item_remove)
@@ -74,7 +74,7 @@ class DetailActivity : RxAppCompatActivity(), MyAlertDialogFragment.MyAlertDialo
         }
 
         FirebaseDatabase.getInstance().getReference("Likes/$intentPostId")
-            .orderByChild("likerId").equalTo(getMyId())
+            .orderByChild("likerId").equalTo(CurrentUser.getInstance().userId)
             .addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     if (snapshot.exists()) {
@@ -104,7 +104,7 @@ class DetailActivity : RxAppCompatActivity(), MyAlertDialogFragment.MyAlertDialo
             .subscribe {
                 val likeRef =
                     FirebaseDatabase.getInstance().getReference("Likes/$intentPostId")
-                likeRef.orderByChild("likerId").equalTo(getMyId())
+                likeRef.orderByChild("likerId").equalTo(CurrentUser.getInstance().userId)
                     .addListenerForSingleValueEvent(object : ValueEventListener {
                         override fun onDataChange(snapshot: DataSnapshot) {
                             Log.d("KHJ", "onDataChange in likeClick")
@@ -115,7 +115,7 @@ class DetailActivity : RxAppCompatActivity(), MyAlertDialogFragment.MyAlertDialo
                                     .load(R.drawable.lb_ic_thumb_up_outline)
                                     .into(binding.detailLikeFloatingButton)
                                 for (ch in snapshot.children) {
-                                    if (ch.child("likerId").value == getMyId()) {
+                                    if (ch.child("likerId").value == CurrentUser.getInstance().userId) {
                                         val removeLikeRef =
                                             likeRef.child(ch.getValue(Like::class.java)!!.likeId)
                                         removeLikeRef.removeValue()
@@ -153,7 +153,7 @@ class DetailActivity : RxAppCompatActivity(), MyAlertDialogFragment.MyAlertDialo
                                     .getReference("Likes/$intentPostId").push()
                                 val like = Like()
                                 like.likeId = newRef.key.toString()
-                                like.likerId = getMyId()
+                                like.likerId = CurrentUser.getInstance().userId
                                 like.postId = intentPostId
                                 like.likeTime = ServerValue.TIMESTAMP
                                 newRef.setValue(like)
@@ -449,7 +449,7 @@ class DetailActivity : RxAppCompatActivity(), MyAlertDialogFragment.MyAlertDialo
                 val inflater = MenuInflater(this@DetailActivity)
                 inflater.inflate(R.menu.card_floating_menu, menu)
                 //                    menu.setHeaderTitle("메뉴")
-                if (comm.writerId == getMyId()) {
+                if (comm.writerId == CurrentUser.getInstance().userId) {
                     menu.removeItem(R.id.menu_item_report)
                 } else {
                     menu.removeItem(R.id.menu_item_remove)
@@ -484,7 +484,7 @@ class DetailActivity : RxAppCompatActivity(), MyAlertDialogFragment.MyAlertDialo
     }
 
     @SuppressLint("HardwareIds")
-    fun getMyId(): String { // Return Device ID
+    fun getDeviceId(): String { // Return Device ID
         return Settings.Secure.getString(this.contentResolver, Settings.Secure.ANDROID_ID)
     }
 }

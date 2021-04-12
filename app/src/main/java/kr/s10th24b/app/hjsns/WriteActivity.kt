@@ -96,7 +96,7 @@ class WriteActivity : RxAppCompatActivity() {
                             post.writeTime = ServerValue.TIMESTAMP
                             post.bgUri = bgList[currentBgPosition]
                             post.message = binding.writeEditText.text.toString()
-                            post.writerId = getMyId()
+                            post.writerId = CurrentUser.getInstance().userId
                             post.postId = newRef.key.toString()
                             newRef.setValue(post)
                                 .addOnSuccessListener(this) { toast("카드 작성 성공") }
@@ -124,7 +124,7 @@ class WriteActivity : RxAppCompatActivity() {
                                             comment.bgUri = bgList[currentBgPosition]
                                             comment.message =
                                                 binding.writeEditText.text.toString()
-                                            comment.writerId = getMyId()
+                                            comment.writerId = CurrentUser.getInstance().userId
                                             comment.postId = intentPostId
                                             comment.commentId = newRef.key.toString()
                                             newRef.setValue(comment)
@@ -282,7 +282,7 @@ class WriteActivity : RxAppCompatActivity() {
     }
 
     @SuppressLint("HardwareIds")
-    fun getMyId(): String { // Return Device ID
+    fun getDeviceId(): String { // Return Device ID
         return Settings.Secure.getString(this.contentResolver, Settings.Secure.ANDROID_ID)
     }
 

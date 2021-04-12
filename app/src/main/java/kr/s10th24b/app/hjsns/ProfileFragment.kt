@@ -21,10 +21,7 @@ import com.trello.rxlifecycle4.kotlin.bindUntilEvent
 import io.reactivex.rxjava3.android.schedulers.AndroidSchedulers
 import kr.s10th24b.app.hjsns.databinding.FragmentProfileBinding
 import splitties.toast.toast
-import splitties.snackbar.snack
-import splitties.systemservices.appWidgetManager
 import java.util.concurrent.TimeUnit
-import kotlin.math.log
 
 class ProfileFragment : RxFragment(), MyAlertDialogFragment.MyAlertDialogListener {
     lateinit var binding: FragmentProfileBinding
@@ -80,7 +77,7 @@ class ProfileFragment : RxFragment(), MyAlertDialogFragment.MyAlertDialogListene
                 binding.profileProviderTextView.text = "Email Account"
             }
             else -> {
-                error("Error in when data.providerId")
+                error("Error in when providerId")
             }
         }
     }

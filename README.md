@@ -1,5 +1,6 @@
 # HJ SNS
 ![](.README_images/app_logo.png)
+
 HJ's Social Network Service :couplekiss:
 
 ## What is this?
@@ -22,6 +23,7 @@ This is the Social Network Service Application anyone can post their card with c
 - [X] Introduce FireBase Authentication (done at 21.04.08)
 - [X] Apply AuthInfo to Profile Information (done at 21.04.09)
 - [ ]  ~Add SharedPreference for Profile Info (you shouldn't do this!)~
+- [X] Manage User Info in DB, not Device ID
 - [ ] Add User Profile Modification Function 
 - [X] Show Cards, Comments, and Likes of User in Profile Fragment (done at 04.10)
 - [X] Show Cards, Comments, and Likes of User in Profile Fragment

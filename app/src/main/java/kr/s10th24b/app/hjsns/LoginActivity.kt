@@ -32,14 +32,19 @@ class LoginActivity : AppCompatActivity() {
                 .equalTo(user.uid).addListenerForSingleValueEvent(object : ValueEventListener {
                     override fun onDataChange(snapshot: DataSnapshot) {
                         if (snapshot.exists()) {
-                            val ssUser = snapshot.getValue(Users::class.java)
-                            ssUser?.let {
+                            if (snapshot.childrenCount > 1) error("Error in user children count!")
+                            val ss = snapshot.children.first()
+                            Log.d("KHJ","snapshot.key: ${snapshot.key}")
+                            Log.d("KHJ","snapshot.value: ${snapshot.value}")
+                            val ssUser = ss.getValue(Users::class.java) as Users
+                            Log.d("KHJ",ssUser.printToString())
+                            ssUser.let {
                                 CurrentUser.setInstance(ssUser)
                                 startMainActivity()
                             }
                         } else {
-                            error("Error in LoginActivity!")
-                            finish()
+                            FirebaseAuth.getInstance().signOut()
+                            createSignInIntent()
                         }
                     }
 
@@ -99,11 +104,11 @@ class LoginActivity : AppCompatActivity() {
                     .addListenerForSingleValueEvent(object : ValueEventListener {
                         override fun onDataChange(snapshot: DataSnapshot) {
                             if (!snapshot.exists()) {
-                                val newKey = userRef.push()
+                                val newRef = userRef.push()
                                 val user = Users()
-                                setUser(user, curUser, newKey.toString())
+                                setUser(user, curUser, newRef.key.toString())
                                 CurrentUser.setInstance(user)
-                                newKey.setValue(user)
+                                newRef.setValue(user)
                                     .addOnCompleteListener { task ->
                                         if (task.isSuccessful) {
                                             toast("User 생성 성공")
@@ -120,8 +125,12 @@ class LoginActivity : AppCompatActivity() {
                                     .equalTo(curUser.uid).addListenerForSingleValueEvent(object : ValueEventListener {
                                         override fun onDataChange(snapshot: DataSnapshot) {
                                             if (snapshot.exists()) {
-                                                val ssUser = snapshot.getValue(Users::class.java)
-                                                ssUser?.let {
+                                                val ss = snapshot.children.first()
+                                                val ssUser = ss.getValue(Users::class.java) as Users
+                                                Log.d("KHJ","snapshot.key: ${snapshot.key}")
+                                                Log.d("KHJ","snapshot.value: ${snapshot.value}")
+                                                Log.d("KHJ",ssUser.printToString())
+                                                ssUser.let {
                                                     CurrentUser.setInstance(ssUser)
                                                     startMainActivity()
                                                 }

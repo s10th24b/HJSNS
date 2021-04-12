@@ -41,8 +41,8 @@ class UserCardFragment(val showType: String) : RxFragment(),
     var clickCardSubject = PublishSubject.create<Post>()
     lateinit var menuCard: Post
 
-    lateinit var myCommentCardRef: Query
-    lateinit var myLikeCardRef: Query
+    lateinit var myCommentCardRef: DatabaseReference
+    lateinit var myLikeCardRef: DatabaseReference
     lateinit var valueListener: ValueEventListener
     lateinit var childListener: ChildEventListener
     lateinit var childListenerPairsList: MutableList<Pair<Query, ChildEventListener>>
@@ -142,182 +142,214 @@ class UserCardFragment(val showType: String) : RxFragment(),
             override fun onDataChange(snapshot: DataSnapshot) {
                 if (snapshot.exists()) {
                     snapshot.let { ss ->
-                        Log.d("KHJ", "childrenCount: ${snapshot.childrenCount}")
+                        Log.d("KHJ", "childrenCount: ${ss.childrenCount}")
                         Log.d("KHJ", "onDataChanged in valueListener!")
-                        for (c in snapshot.children) {
+                        for (c in ss.children) {
                             c?.let { tc ->
                                 Log.d("KHJ", "key: ${tc.key}")
-//                                Log.d("KHJ", "typeClass.message: ${tc.message}")
-                                val query = allRef.orderByChild("postId").equalTo(tc.key)
-                                // 이렇게 직접 key 값으로 포스트에서 직접 가져오는 건 쉽지만...
-                                // 이렇게하면 좋아요와 댓글이 바뀔 때 실시간으로 반응하지 못한다.
-                                childListener =
-                                    query.addChildEventListener(object : ChildEventListener {
-                                        override fun onChildAdded(
-                                            snapshot: DataSnapshot,
-                                            previousChildName: String?
-                                        ) {
+                                val existenceQuery = when (type) {
+                                    "myCommentCard" -> ref.child(tc.key.toString())
+                                        .orderByChild("writerId")
+                                        .equalTo(CurrentUser.getInstance().userId)
+                                    "myLikeCard" -> ref.child(tc.key.toString())
+                                        .orderByChild("likerId")
+                                        .equalTo(CurrentUser.getInstance().userId)
+                                    else -> ref.child(tc.key.toString())
+                                        .orderByChild("writerId")
+                                        .equalTo(CurrentUser.getInstance().userId)
+                                }
+                                existenceQuery.addListenerForSingleValueEvent(object :
+                                    ValueEventListener {
+                                    override fun onDataChange(snapshot: DataSnapshot) {
+                                        if (snapshot.exists()) {
+                                            val query =
+                                                allRef.orderByChild("postId").equalTo(tc.key)
+                                            // 이렇게 직접 key 값으로 포스트에서 직접 가져오는 건 쉽지만...
+                                            // 이렇게하면 좋아요와 댓글이 바뀔 때 실시간으로 반응하지 못한다.
+                                            childListener =
+                                                query.addChildEventListener(object :
+                                                    ChildEventListener {
+                                                    override fun onChildAdded(
+                                                        snapshot: DataSnapshot,
+                                                        previousChildName: String?
+                                                    ) {
 //                    toast("onChildAdded()")
-                                            Log.d("KHJ", "onChildAdded!")
-                                            if (snapshot.exists()) {
-                                                snapshot.let { ss ->
-                                                    val post = ss.getValue(Post::class.java)
-                                                    post?.let { newPost ->
-                                                        // 새 글이 마지막 부분에 추가된 경우
-                                                        if (previousChildName == null) {
+                                                        Log.d("KHJ", "onChildAdded!")
+                                                        if (snapshot.exists()) {
+                                                            snapshot.let { ss ->
+                                                                val post =
+                                                                    ss.getValue(Post::class.java)
+                                                                post?.let { newPost ->
+                                                                    // 새 글이 마지막 부분에 추가된 경우
+                                                                    if (previousChildName == null) {
 //                                toast("새 글이 마지막부분에 추가")
-                                                            recyclerViewAdapter.cardList.add(
-                                                                newPost
-                                                            )
-                                                            recyclerViewAdapter.notifyItemInserted(
-                                                                0
-                                                            )
-                                                            recyclerViewAdapter.notifyDataSetChanged()
+                                                                        recyclerViewAdapter.cardList.add(
+                                                                            newPost
+                                                                        )
+                                                                        recyclerViewAdapter.notifyItemInserted(
+                                                                            0
+                                                                        )
+                                                                        recyclerViewAdapter.notifyDataSetChanged()
 //                                recyclerViewAdapter.notifyDataSetChanged()
-                                                        } else { // 글이 중간에 삽입된 경우... 근데 이건 이 앱에선 상관없음. 무조건 마지막에 추가되도록 했으니.
+                                                                    } else { // 글이 중간에 삽입된 경우... 근데 이건 이 앱에선 상관없음. 무조건 마지막에 추가되도록 했으니.
 //                                toast("새 글이 중간에 추가")
 //                                val prevIndex = recyclerViewAdapter.cardList
 //                                    .indexOfFirst { it.postId == previousChildName }
 //                                    recyclerViewAdapter.cardList.add(prevIndex + 1, newPost)
-                                                            recyclerViewAdapter.cardList.add(
-                                                                newPost
-                                                            )
-                                                            recyclerViewAdapter.notifyItemInserted(
-                                                                recyclerViewAdapter.cardList.lastIndex
-                                                            )
-                                                            recyclerViewAdapter.notifyDataSetChanged()
-                                                            val firstCompVisPos =
-                                                                layoutManager.findFirstCompletelyVisibleItemPosition()
+                                                                        recyclerViewAdapter.cardList.add(
+                                                                            newPost
+                                                                        )
+                                                                        recyclerViewAdapter.notifyItemInserted(
+                                                                            recyclerViewAdapter.cardList.lastIndex
+                                                                        )
+                                                                        recyclerViewAdapter.notifyDataSetChanged()
+                                                                        val firstCompVisPos =
+                                                                            layoutManager.findFirstCompletelyVisibleItemPosition()
 //                                val visibleItemCount = binding.cardsFragmentRecyclerView.childCount
-                                                            val visibleItemCount =
-                                                                layoutManager.childCount
-                                                            val totalItemCount =
-                                                                layoutManager.itemCount
+                                                                        val visibleItemCount =
+                                                                            layoutManager.childCount
+                                                                        val totalItemCount =
+                                                                            layoutManager.itemCount
 //                                toast("firstCompVis: $firstCompVisPos, totalItemCount: $totalItemCount visibleItemCount: $visibleItemCount")
-                                                            if (firstCompVisPos + visibleItemCount >= totalItemCount) {// If scroll top
-                                                                binding.userCardsFragmentRecyclerView.scrollToPosition(
-                                                                    recyclerViewAdapter.cardList.lastIndex
+                                                                        if (firstCompVisPos + visibleItemCount >= totalItemCount) {// If scroll top
+                                                                            binding.userCardsFragmentRecyclerView.scrollToPosition(
+                                                                                recyclerViewAdapter.cardList.lastIndex
+                                                                            )
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        for ((idx, card) in recyclerViewAdapter.cardList.withIndex()) {
+                                                            Log.d("KHJ", "$idx: ${card.message}")
+                                                        }
+                                                    }
+
+                                                    override fun onChildChanged(
+                                                        snapshot: DataSnapshot,
+                                                        previousChildName: String?
+                                                    ) {
+//                    toast("onChildChanged()")
+                                                        Log.d("KHJ", "onChildChanged()")
+                                                        snapshot.let { ss ->
+                                                            //snapshot의 데이터를 Post의 객체로
+                                                            val post = ss.getValue(Post::class.java)
+                                                            // 이 Query의 대상은 postId 이므로, 항상 유일하다.
+                                                            // 고로, previousChildName 은 항상 null 일수밖에 없다.
+                                                            // 이 Query 결과 이전의 child는 없을 것이므로. (유일)
+                                                            post?.let { newPost ->
+                                                                val index =
+                                                                    recyclerViewAdapter.cardList
+                                                                        .indexOfFirst { it.postId == newPost.postId }
+                                                                Log.d(
+                                                                    "KHJ",
+                                                                    "previousChildName: $previousChildName"
                                                                 )
+                                                                recyclerViewAdapter.cardList[index] =
+                                                                    newPost
+                                                                recyclerViewAdapter.notifyItemChanged(
+                                                                    index
+                                                                )
+                                                                recyclerViewAdapter.notifyDataSetChanged()
                                                             }
                                                         }
                                                     }
-                                                }
-                                            }
-                                            for ((idx, card) in recyclerViewAdapter.cardList.withIndex()) {
-                                                Log.d("KHJ", "$idx: ${card.message}")
-                                            }
-                                        }
 
-                                        override fun onChildChanged(
-                                            snapshot: DataSnapshot,
-                                            previousChildName: String?
-                                        ) {
-//                    toast("onChildChanged()")
-                                            Log.d("KHJ", "onChildChanged()")
-                                            snapshot.let { ss ->
-                                                //snapshot의 데이터를 Post의 객체로
-                                                val post = ss.getValue(Post::class.java)
-                                                // 이 Query의 대상은 postId 이므로, 항상 유일하다.
-                                                // 고로, previousChildName 은 항상 null 일수밖에 없다.
-                                                // 이 Query 결과 이전의 child는 없을 것이므로. (유일)
-                                                post?.let { newPost ->
-                                                    val index = recyclerViewAdapter.cardList
-                                                        .indexOfFirst { it.postId == newPost.postId }
-                                                    Log.d(
-                                                        "KHJ",
-                                                        "previousChildName: $previousChildName"
-                                                    )
-                                                    recyclerViewAdapter.cardList[index] = newPost
-                                                    recyclerViewAdapter.notifyItemChanged(index)
-                                                    recyclerViewAdapter.notifyDataSetChanged()
-                                                }
-                                            }
-                                        }
-
-                                        override fun onChildRemoved(snapshot: DataSnapshot) {
+                                                    override fun onChildRemoved(snapshot: DataSnapshot) {
 //                    toast("onChildRemoved()")
-                                            Log.d("KHJ", "onChildRemoved()")
-                                            snapshot.let { ss ->
-                                                //snapshot의 데이터를 Post의 객체로 가져옴
-                                                val post = ss.getValue(Post::class.java)
-                                                post.let { newPost ->
-                                                    val existIndex =
-                                                        recyclerViewAdapter.cardList
-                                                            .indexOfFirst { it.postId == newPost?.postId }
-                                                    if (existIndex != -1) {
-                                                        recyclerViewAdapter.cardList.removeAt(
-                                                            existIndex
-                                                        )
-                                                        recyclerViewAdapter.notifyItemRemoved(
-                                                            existIndex
-                                                        )
-                                                        recyclerViewAdapter.notifyDataSetChanged()
-                                                    } else {
-                                                        recyclerViewAdapter.notifyDataSetChanged()
-                                                    }
-                                                }
-                                            }
-                                        }
-
-                                        override fun onChildMoved(
-                                            snapshot: DataSnapshot,
-                                            previousChildName: String?
-                                        ) {
-//                    toast("onChildMoved()")
-                                            Log.d("KHJ", "onChildMoved()")
-                                            snapshot.let { ss ->
-                                                //snapshot의 데이터를 Post의 객체로
-                                                val post = ss.getValue(Post::class.java)
-                                                post.let { newPost ->
-                                                    val existIndex =
-                                                        recyclerViewAdapter.cardList
-                                                            .indexOfFirst { it.postId == newPost?.postId }
-                                                    recyclerViewAdapter.cardList.removeAt(
-                                                        existIndex
-                                                    )
-                                                    recyclerViewAdapter.notifyItemRemoved(
-                                                        existIndex
-                                                    )
-                                                    recyclerViewAdapter.notifyDataSetChanged()
-                                                    // prevChildName 이 없는 경우 맨 마지막으로 이동된 것
-                                                    if (previousChildName == null) {
-                                                        recyclerViewAdapter.cardList.add(newPost!!)
-                                                        recyclerViewAdapter.notifyItemInserted(
-                                                            recyclerViewAdapter.cardList.lastIndex
-                                                        )
-                                                        recyclerViewAdapter.notifyDataSetChanged()
-                                                    } else {
-                                                        // prevChildName 다음 글로 추가
-                                                        val prevIndex =
-                                                            recyclerViewAdapter.cardList.indexOfFirst { it.postId == previousChildName }
-                                                        if (prevIndex != -1) {
-                                                            recyclerViewAdapter.cardList.add(
-                                                                prevIndex + 1,
-                                                                newPost!!
-                                                            )
-                                                            recyclerViewAdapter.notifyItemInserted(
-                                                                prevIndex + 1
-                                                            )
-                                                            recyclerViewAdapter.notifyDataSetChanged()
-                                                        } else {
-                                                            error("Error in onChildMoved!")
-
+                                                        Log.d("KHJ", "onChildRemoved()")
+                                                        snapshot.let { ss ->
+                                                            //snapshot의 데이터를 Post의 객체로 가져옴
+                                                            val post = ss.getValue(Post::class.java)
+                                                            post.let { newPost ->
+                                                                val existIndex =
+                                                                    recyclerViewAdapter.cardList
+                                                                        .indexOfFirst { it.postId == newPost?.postId }
+                                                                if (existIndex != -1) {
+                                                                    recyclerViewAdapter.cardList.removeAt(
+                                                                        existIndex
+                                                                    )
+                                                                    recyclerViewAdapter.notifyItemRemoved(
+                                                                        existIndex
+                                                                    )
+                                                                    recyclerViewAdapter.notifyDataSetChanged()
+                                                                } else {
+                                                                    recyclerViewAdapter.notifyDataSetChanged()
+                                                                }
+                                                            }
                                                         }
                                                     }
-                                                }
-                                            }
-                                        }
 
-                                        override fun onCancelled(error: DatabaseError) {
-                                            toast("onCancelled()")
-                                            error.toException().printStackTrace()
-                                            error(error.toString())
+                                                    override fun onChildMoved(
+                                                        snapshot: DataSnapshot,
+                                                        previousChildName: String?
+                                                    ) {
+//                    toast("onChildMoved()")
+                                                        Log.d("KHJ", "onChildMoved()")
+                                                        snapshot.let { ss ->
+                                                            //snapshot의 데이터를 Post의 객체로
+                                                            val post = ss.getValue(Post::class.java)
+                                                            post.let { newPost ->
+                                                                val existIndex =
+                                                                    recyclerViewAdapter.cardList
+                                                                        .indexOfFirst { it.postId == newPost?.postId }
+                                                                recyclerViewAdapter.cardList.removeAt(
+                                                                    existIndex
+                                                                )
+                                                                recyclerViewAdapter.notifyItemRemoved(
+                                                                    existIndex
+                                                                )
+                                                                recyclerViewAdapter.notifyDataSetChanged()
+                                                                // prevChildName 이 없는 경우 맨 마지막으로 이동된 것
+                                                                if (previousChildName == null) {
+                                                                    recyclerViewAdapter.cardList.add(
+                                                                        newPost!!
+                                                                    )
+                                                                    recyclerViewAdapter.notifyItemInserted(
+                                                                        recyclerViewAdapter.cardList.lastIndex
+                                                                    )
+                                                                    recyclerViewAdapter.notifyDataSetChanged()
+                                                                } else {
+                                                                    // prevChildName 다음 글로 추가
+                                                                    val prevIndex =
+                                                                        recyclerViewAdapter.cardList.indexOfFirst { it.postId == previousChildName }
+                                                                    if (prevIndex != -1) {
+                                                                        recyclerViewAdapter.cardList.add(
+                                                                            prevIndex + 1,
+                                                                            newPost!!
+                                                                        )
+                                                                        recyclerViewAdapter.notifyItemInserted(
+                                                                            prevIndex + 1
+                                                                        )
+                                                                        recyclerViewAdapter.notifyDataSetChanged()
+                                                                    } else {
+                                                                        error("Error in onChildMoved!")
+
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+
+                                                    override fun onCancelled(error: DatabaseError) {
+                                                        toast("onCancelled()")
+                                                        error.toException().printStackTrace()
+                                                        error(error.toString())
+                                                    }
+                                                })
+                                            childListenerPairsList.add(Pair(query, childListener))
+
                                         }
-                                    })
-                                childListenerPairsList.add(Pair(query, childListener))
+                                    }
+
+                                    override fun onCancelled(error: DatabaseError) {
+                                    }
+                                })
                             }
                         }
                     }
+                } else {
+                    Log.d("KHJ", "snapshot not exist!")
                 }
             }
 
