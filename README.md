@@ -107,6 +107,7 @@ Database에서 사용자가 이름을 수정하기 전의 Snapshot입니다.
 
 여기까지의 과정이 모두 업데이트 된 DB 상태입니다.
 ### Another User in Google Account
+![](.README_images/demo_image/22another_user_in_phone_google_account.png)
 
 이번엔 스마트폰으로 구글계정으로 동시에 접속중인 유저의 Profile 입니다.
 ### Another User in Card Fragment
