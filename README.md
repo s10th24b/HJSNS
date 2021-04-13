@@ -33,7 +33,7 @@ Main 화면인 Card Page입니다. MainActivity는 2개의 Fragment를 Bottom Na
 ### Adding Comment
 ![](.README_images/demo_image/3card_page3.PNG)
 
-댓글을 달 수 있습니다.
+배경화면을 선택해 댓글을 달 수 있습니다.
 ### Detail Card Page After Add Comment
 ![](.README_images/demo_image/3card_page4.PNG)
 
@@ -64,7 +64,7 @@ Main 화면인 Card Page입니다. MainActivity는 2개의 Fragment를 Bottom Na
 ### Writing Card
 ![](.README_images/demo_image/9write_card.PNG)
 
-카드를 작성해 모두에게 공유할 수 있습니다.
+배경화면을 선택하고 카드를 작성해 모두에게 공유할 수 있습니다.
 ### After Writing Card
 ![](.README_images/demo_image/10after_write_card.PNG)
 
