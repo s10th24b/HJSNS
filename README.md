@@ -84,7 +84,7 @@ Main 화면인 Card Page입니다. MainActivity는 2개의 Fragment를 Bottom Na
 ![](.README_images/demo_image/14my_comment_cards.PNG)
 
 사용자가 댓글을 단 카드들을 볼 수 있습니다.
-### After Removing Card
+### My Liked Cards
 ![](.README_images/demo_image/15my_like_cards.PNG)
 
 사용자가 좋아요를 누른 카드들을 볼 수 있습니다.
@@ -104,7 +104,7 @@ Database에서 사용자가 이름을 수정하기 전의 Snapshot입니다.
 ![](.README_images/demo_image/19logout.PNG)
 
 사용자는 로그아웃을 할 수 있습니다.
-### After Removing Card
+### After Sign Out
 ![](.README_images/demo_image/20after_logout.png)
 
 로그아웃을 하면 성공했다는 알림이 뜨고 맨 처음 로그인 화면으로 돌아갑니다.
