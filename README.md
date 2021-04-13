@@ -2,6 +2,7 @@
 ![](.README_images/app_logo.png)
 
 HJ's Social Network Service :couplekiss:
+
 `Completed at 21.04.13`
 
 ## What is this?
@@ -13,7 +14,9 @@ This is the Social Network Service Application anyone can post their card with c
 ### Specification
 `
 min SDK : 23
+
 Target SDK : 30
+
 Implement : FirebaseAuth, FirebaseDB, FirebaseUI, RxAndroid, RxJava, RxLifeCycle, Glide
 `
 ### Login Page 1
