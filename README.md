@@ -36,4 +36,4 @@ This is the Social Network Service Application anyone can post their card with c
 ### Secondary To-do List 
 - [X] Make UI Better Using Material Design (done at 21.04.06)
 - [X] Add Dark/Light Theme
-- [ ] Make User Choose Theme
+- [ ] Make User Choose Light/Night Theme

@@ -369,7 +369,7 @@ class CardsFragment(val showType: String) : RxFragment(),
             holder.bind(card, position)
             CardPostRecyclerBinding.bind(holder.itemView).timeTextView.text =
                 formatTimeString(card.writeTime as Long)
-            mCompositeDisposable.add(Observable.interval(30L, TimeUnit.SECONDS)
+            mCompositeDisposable.add(Observable.interval(5L, TimeUnit.SECONDS)
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe {
                     CardPostRecyclerBinding.bind(holder.itemView).timeTextView.text =
