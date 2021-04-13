@@ -19,7 +19,8 @@ This is the Social Network Service Application anyone can post their card with c
 ![](.README_images/demo_image/1login.PNG)
 ![](.README_images/demo_image/2login2.PNG)
 
-로그인 페이지입니다. Firebase의 삽입형 인증 솔루션을 이용해, 
+로그인 페이지입니다. Firebase의 삽입형 인증 솔루션을 이용합니다.
+
 Firebase Authentication과 데이터베이스에 등록된 유저인지 아닌지를 확인하고 인증 절차를 거칩니다.
 ### Card Page
 ![](.README_images/demo_image/3card_page1.PNG)
