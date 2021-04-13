@@ -74,7 +74,6 @@ dependencies {
     releaseImplementation "com.squareup.leakcanary:leakcanary-android-no-op:1.6.2"
     debugImplementation "com.squareup.leakcanary:leakcanary-android:1.6.2"
 
-
     // Import the Firebase BoM
     implementation platform('com.google.firebase:firebase-bom:26.8.0')
     // Add the dependency for the Firebase SDK for Google Analytics
