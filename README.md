@@ -4,36 +4,36 @@
 HJ's Social Network Service :couplekiss:
 
 ## What is this?
-![](.README_images/c770f767.png
+![](.README_images/c770f767.png)
 
 This is the Social Network Service Application anyone can post their card with comment on. 
 
 ## How it works
-![](.README_images/demo_image/1login.png
-![](.README_images/demo_image/2login2.png
-![](.README_images/demo_image/3card_page1.png
-![](.README_images/demo_image/3card_page2.png
-![](.README_images/demo_image/3card_page3.png
-![](.README_images/demo_image/3card_page4.png
-![](.README_images/demo_image/3card_page5.png
-![](.README_images/demo_image/4remove_and_edit.png
-![](.README_images/demo_image/5remove_card.png
-![](.README_images/demo_image/6after_card_remove.png
-![](.README_images/demo_image/7other_card_report.png
-![](.README_images/demo_image/8report_email_to_dev.png
-![](.README_images/demo_image/9write_card.png
-![](.README_images/demo_image/10after_write_card.png
-![](.README_images/demo_image/11comment_to_my_card.png
-![](.README_images/demo_image/12profile_page.png
-![](.README_images/demo_image/13my_cards.png
-![](.README_images/demo_image/14my_comment_cards.png
-![](.README_images/demo_image/15my_like_cards.png
-![](.README_images/demo_image/16before_change_name.png
-![](.README_images/demo_image/17after_change_namein_app.png
-![](.README_images/demo_image/18after_change_name.png
-![](.README_images/demo_image/19logout.png
-![](.README_images/demo_image/20after_logout.png
-![](.README_images/demo_image/21database.png
+![](.README_images/demo_image/1login.PNG)
+![](.README_images/demo_image/2login2.PNG)
+![](.README_images/demo_image/3card_page1.PNG)
+![](.README_images/demo_image/3card_page2.PNG)
+![](.README_images/demo_image/3card_page3.PNG)
+![](.README_images/demo_image/3card_page4.PNG)
+![](.README_images/demo_image/3card_page5.PNG)
+![](.README_images/demo_image/4remove_and_edit.PNG)
+![](.README_images/demo_image/5remove_card.PNG)
+![](.README_images/demo_image/6after_card_remove.PNG)
+![](.README_images/demo_image/7other_card_report.PNG)
+![](.README_images/demo_image/8report_email_to_dev.PNG)
+![](.README_images/demo_image/9write_card.PNG)
+![](.README_images/demo_image/10after_write_card.PNG)
+![](.README_images/demo_image/11commet_to_my_card.PNG)
+![](.README_images/demo_image/12profile_page.png)
+![](.README_images/demo_image/13my_cards.PNG)
+![](.README_images/demo_image/14my_comment_cards.PNG)
+![](.README_images/demo_image/15my_like_cards.PNG)
+![](.README_images/demo_image/16before_change_name.PNG)
+![](.README_images/demo_image/17after_change_namein_app.PNG)
+![](.README_images/demo_image/18after_change_name.png)
+![](.README_images/demo_image/19logout.PNG)
+![](.README_images/demo_image/20after_logout.png)
+![](.README_images/demo_image/21database.png)
 
 
 ## Primary To-do List 
