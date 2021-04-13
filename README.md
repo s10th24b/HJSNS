@@ -23,19 +23,24 @@ This is the Social Network Service Application anyone can post their card with c
 데이터베이스에 등록된 유저인지 아닌지를 확인하고 인증 절차를 거칩니다.
 ### Card Page
 ![](.README_images/demo_image/3card_page1.PNG)
+
 Main 화면인 Card Page입니다. MainActivity는 2개의 Fragment를 Bottom Navigation으로 순회할 수 있도록 했으며,
 각각 Card Page, Profile Page로 구성되어 있습니다.
 ### Detail Card 
 ![](.README_images/demo_image/3card_page2.PNG)
+
 포스팅된 카드를 볼 수 있습니다.
 ### Adding Comment
 ![](.README_images/demo_image/3card_page3.PNG)
+
 댓글을 달 수 있습니다.
 ### Detail Card Page After Add Comment
 ![](.README_images/demo_image/3card_page4.PNG)
+
 사용자가 댓글을 달면 누구나 실시간으로 업데이트 되는 모습을 볼 수 있습니다.
 ### Like the Card
 ![](.README_images/demo_image/3card_page5.PNG)
+
 댓글과 마찬가지로 좋아요도 실시간으로 업데이트 됩니다.
 ### Card Context Menu
 ![](.README_images/demo_image/4remove_and_edit.PNG)
@@ -43,6 +48,7 @@ Main 화면인 Card Page입니다. MainActivity는 2개의 Fragment를 Bottom Na
 본인이 작성한 카드는 삭제 및 수정이 가능합니다.
 ### Deleting Card
 ![](.README_images/demo_image/5remove_card.PNG)
+
 ### After Removing Card
 ![](.README_images/demo_image/6after_card_remove.PNG)
 
@@ -65,6 +71,7 @@ Main 화면인 Card Page입니다. MainActivity는 2개의 Fragment를 Bottom Na
 카드를 작성하면 모든 사용자에게 실시간으로 업데이트되며, 맨 위에 스크롤되어있다면 자동으로 스크롤이 내려가며 갱신됩니다.
 ### Adding Comment
 ![](.README_images/demo_image/11commet_to_my_card.PNG)
+
 ### Profile Page
 ![](.README_images/demo_image/12profile_page.png)
 
