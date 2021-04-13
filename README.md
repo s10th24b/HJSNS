@@ -26,10 +26,10 @@ This is the Social Network Service Application anyone can post their card with c
 - [X] Manage User Info in DB, not Device ID (done at 21.04.11)
 - [X] Add User Profile Modification Function (done at 21.04.12)
 - [X] Show Cards, Comments, and Likes of User in Profile Fragment (done at 21.04.10)
-- [ ] Introduce FCM Service for New Message
 - [X] Automatically Scroll Up at Top of Items (done at 21.04.04)
 - [ ] ~Add Photo Uploading System in Posting Operation (You have to implement File Server for this...)~
-- [ ] Add Observer Patterns such as Cards Badge
+- [ ] ~Introduce FCM Service for New Message (You have to implement Node.js Server for this...)~
+- [ ] ~Add Observer Patterns such as Cards Badge (should work with FCM Service)~
 - [ ] Save UI State with LifeCycle(Preserve Data When Screen Rotates, Listener Restoration)
 
 ----------------
