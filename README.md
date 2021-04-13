@@ -15,7 +15,7 @@ This is the Social Network Service Application anyone can post their card with c
 - min SDK : 23
 - Target SDK : 30  
 - Implement : FirebaseAuth, FirebaseDB, FirebaseUI, RxAndroid, RxJava, RxLifeCycle, Glide
-### Login Page 1
+### Login Page
 ![](.README_images/demo_image/1login.PNG)
 ![](.README_images/demo_image/2login2.PNG)
 
