@@ -144,7 +144,7 @@ Database에서 사용자가 이름을 수정하기 전의 Snapshot입니다.
 - [ ] ~Add Photo Uploading System in Posting Operation (You have to implement File Server for this...)~
 - [ ] ~Introduce FCM Service for New Message (You have to implement Node.js Server for this...)~
 - [ ] ~Add Observer Patterns such as Cards Badge (should work with FCM Service)~
-- [ ] Save UI State with LifeCycle(Preserve Data When Screen Rotates, Listener Restoration)
+- [ ] ~Save UI State with LifeCycle(Preserve Data When Screen Rotates, Listener Restoration) -> (You should use ViewModel!)~
 
 ----------------
 ### Secondary To-do List 
