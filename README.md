@@ -98,7 +98,7 @@ Database에서 사용자가 이름을 수정하기 전의 Snapshot입니다.
 ![](.README_images/demo_image/17after_change_namein_app.PNG)
 
 사용자가 이름을 바꿀 수 있습니다.
-### Before Change User Name in DB
+### After Change User Name in DB
 ![](.README_images/demo_image/18after_change_name.png)
 
 사용자가 이름을 바꿀 때마다 Transaction으로 실시간으로 DB를 업데이트합니다.
